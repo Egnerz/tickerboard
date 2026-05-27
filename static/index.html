@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tickerboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; padding: 24px; }
+
+    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 20px; color: #58a6ff; letter-spacing: 0.5px; }
+
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .toolbar input {
+      background: #161b22; border: 1px solid #30363d; color: #e6edf3;
+      padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;
+    }
+    .toolbar input:focus { outline: none; border-color: #58a6ff; }
+    .toolbar button {
+      background: #238636; color: #fff; border: none; padding: 8px 16px;
+      border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+    }
+    .toolbar button:hover { background: #2ea043; }
+    .toolbar button.refresh { background: #1f6feb; }
+    .toolbar button.refresh:hover { background: #388bfd; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead th {
+      background: #161b22; padding: 10px 14px; text-align: left;
+      color: #8b949e; font-weight: 500; border-bottom: 1px solid #21262d;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #21262d; transition: background 0.15s; }
+    tbody tr:hover { background: #161b22; }
+    tbody td { padding: 10px 14px; white-space: nowrap; }
+
+    .symbol { font-weight: 600; color: #58a6ff; font-size: 0.95rem; }
+    .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #3fb950; margin-left: 5px; vertical-align: middle; }
+    .name { color: #8b949e; font-size: 0.82rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .price { font-weight: 600; }
+    .up { color: #3fb950; }
+    .down { color: #f85149; }
+    .neutral { color: #8b949e; }
+    .badge { font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; font-weight: 500; display: inline-block; }
+    .badge.up { background: #0d4429; color: #3fb950; }
+    .badge.down { background: #4d1616; color: #f85149; }
+    .badge.neutral { background: #21262d; color: #8b949e; }
+    .del-btn { background: none; border: none; color: #6e7681; cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 4px; }
+    .del-btn:hover { color: #f85149; background: #2d1515; }
+    .settings-bar {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 12px 16px; margin-bottom: 16px;
+    }
+    .settings-label { color: #8b949e; font-size: 0.85rem; }
+    .push-btn { background: #6e40c9; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
+    .push-btn:hover { background: #8957e5; }
+    .push-btn:disabled { opacity: 0.5; cursor: default; }
+    #pushStatus { font-size: 0.8rem; }
+    #pushStatus.ok { color: #3fb950; }
+    #pushStatus.err { color: #f85149; }
+    .loading { color: #8b949e; font-size: 0.85rem; padding: 20px 0; }
+    .error-cell { color: #f85149; font-size: 0.8rem; }
+    .last-updated { color: #6e7681; font-size: 0.78rem; margin-bottom: 16px; }
+    .name-input {
+      background: transparent; border: none; border-bottom: 1px solid transparent;
+      color: #8b949e; font-size: 0.82rem; width: 100%; min-width: 80px; max-width: 140px;
+      padding: 2px 4px; border-radius: 0; outline: none; font-family: inherit;
+    }
+    .name-input:hover { border-bottom-color: #30363d; }
+    .name-input:focus { border-bottom-color: #58a6ff; color: #e6edf3; }
+    .name-input::placeholder { color: #484f58; }
+  </style>
+</head>
+<body>
+  <h1>Tickerboard</h1>
+
+  <div class="settings-bar" id="settingsBar">
+    <span class="settings-label">AWTRIX IP:</span>
+    <input id="awtrixIp" type="text" placeholder="192.168.2.54" style="width:150px" />
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" id="awtrixEnabled" onchange="saveSettings()">
+      <span data-i18n="autoPush">Auto-push to device</span>
+    </label>
+    <span class="settings-label" data-i18n="refreshEvery">Refresh every</span>
+    <select id="refreshInterval" onchange="saveSettings(); applyInterval()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
+      <option value="10"  data-i18n="sec10">10 sec</option>
+      <option value="30"  data-i18n="sec30">30 sec</option>
+      <option value="60"  data-i18n="min1" selected>1 min</option>
+      <option value="120" data-i18n="min2">2 min</option>
+      <option value="300" data-i18n="min5">5 min</option>
+      <option value="600" data-i18n="min10">10 min</option>
+    </select>
+    <span class="settings-label" data-i18n="language">Language:</span>
+    <select id="language" onchange="saveSettings(); applyLanguage()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
+      <option value="en">English</option>
+      <option value="sv">Svenska</option>
+    </select>
+    <span class="settings-label" data-i18n="displayLabel">Display:</span>
+    <select id="displayMode" onchange="saveSettings(); togglePageDuration()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
+      <option value="scroll" data-i18n="scrollMode">Scrolling text</option>
+      <option value="paged"  data-i18n="pagedMode">One ticker at a time</option>
+    </select>
+    <span id="pageDurationWrap" style="display:none;align-items:center;gap:6px">
+      <span class="settings-label" data-i18n="secPage">Sec/page:</span>
+      <input id="pageDuration" type="number" min="2" max="30" value="5" onchange="saveSettings()" style="background:#161b22;border:1px solid #30363d;color:#e6edf3;padding:6px 8px;border-radius:6px;font-size:0.85rem;width:55px" />
+    </span>
+    <span id="scrollSpeedWrap" style="display:none;align-items:center;gap:6px">
+      <span class="settings-label" data-i18n="scrollSpeed">Scroll speed:</span>
+      <input id="scrollSpeed" type="range" min="10" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'; saveSettings()" style="width:80px;accent-color:#58a6ff;cursor:pointer" />
+      <span id="scrollSpeedVal" style="color:#8b949e;font-size:0.82rem;min-width:34px">40%</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
+      <span class="settings-label" data-i18n="brightness">Brightness:</span>
+      <input id="brightness" type="range" min="1" max="100" value="50" oninput="brightnessInput(this.value)" style="width:70px;accent-color:#58a6ff;cursor:pointer" />
+      <span id="brightnessVal" style="color:#8b949e;font-size:0.82rem;min-width:28px">50%</span>
+      <button id="nightBtn" onclick="setBrightness(15)" data-i18n-title="nightTitle" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem" title="Night mode ~15%"><span data-i18n="night">Night</span></button>
+      <button id="dayBtn"   onclick="setBrightness(70)" data-i18n-title="dayTitle"   style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem" title="Day mode ~70%"><span data-i18n="day">Day</span></button>
+    </span>
+    <button class="push-btn" onclick="pushNow()" id="pushBtn" data-i18n="sendToDevice">📡 Send to device</button>
+    <span id="pushStatus"></span>
+  </div>
+
+  <div class="toolbar">
+    <input id="addInput" type="text" data-i18n-placeholder="addPlaceholder" placeholder="E.g. AAPL, ^GSPC, SPY" />
+    <button onclick="addTicker()" data-i18n="add">+ Add</button>
+    <button class="refresh" onclick="fetchQuotes()" data-i18n="refreshBtn">↻ Refresh</button>
+  </div>
+
+  <div style="display:flex;gap:16px;align-items:center;margin-bottom:4px">
+    <div class="last-updated" id="lastUpdated"></div>
+    <div id="marketStatus"></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th data-i18n="colName">Name</th>
+        <th id="colDisplayName" data-i18n="colDisplayName" data-i18n-title="colDisplayTitle" title="Shown on device instead of symbol">Display name</th>
+        <th data-i18n="colPrice">Price</th>
+        <th data-i18n="colChange">Change</th>
+        <th id="preHeader" data-i18n="colPreMarket">Pre-market</th>
+        <th id="postHeader" data-i18n="colAfterHours">After-hours</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="8" class="loading" data-i18n="loading">Loading data…</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const ui = {
+      en: {
+        autoPush:        'Auto-push to device',
+        refreshEvery:    'Refresh every',
+        sec10:           '10 sec',
+        sec30:           '30 sec',
+        min1:            '1 min',
+        min2:            '2 min',
+        min5:            '5 min',
+        min10:           '10 min',
+        language:        'Language:',
+        displayLabel:    'Display:',
+        scrollMode:      'Scrolling text',
+        pagedMode:       'One ticker at a time',
+        secPage:         'Sec/page:',
+        scrollSpeed:     'Scroll speed:',
+        brightness:      'Brightness:',
+        nightTitle:      'Night mode ~15%',
+        night:           'Night',
+        dayTitle:        'Day mode ~70%',
+        day:             'Day',
+        sendToDevice:    '📡 Send to device',
+        addPlaceholder:  'E.g. AAPL, ^GSPC, SPY',
+        add:             '+ Add',
+        refreshBtn:      '↻ Refresh',
+        colName:         'Name',
+        colDisplayName:  'Display name',
+        colDisplayTitle: 'Shown on device instead of symbol',
+        colPrice:        'Price',
+        colChange:       'Change',
+        colPreMarket:    'Pre-market',
+        colAfterHours:   'After-hours',
+        loading:         'Loading data…',
+        fetching:        'Fetching data…',
+        noTickers:       'No tickers added.',
+        errorPrefix:     'Error:',
+        activelyTrading: 'Actively trading',
+        displayNameHint: 'Display name on device',
+        sending:         'Sending…',
+        tickersSent:     'tickers sent',
+        networkError:    'Network error',
+        updated:         'Updated:',
+      },
+      sv: {
+        autoPush:        'Auto-push till enhet',
+        refreshEvery:    'Uppdatera var',
+        sec10:           '10 sek',
+        sec30:           '30 sek',
+        min1:            '1 min',
+        min2:            '2 min',
+        min5:            '5 min',
+        min10:           '10 min',
+        language:        'Språk:',
+        displayLabel:    'Display:',
+        scrollMode:      'Rullande text',
+        pagedMode:       'En ticker åt gången',
+        secPage:         'Sek/sida:',
+        scrollSpeed:     'Rullhastighet:',
+        brightness:      'Ljusstyrka:',
+        nightTitle:      'Nattläge ~15%',
+        night:           'Natt',
+        dayTitle:        'Dagläge ~70%',
+        day:             'Dag',
+        sendToDevice:    '📡 Skicka till enhet',
+        addPlaceholder:  'T.ex. AAPL, ^GSPC, SPY',
+        add:             '+ Lägg till',
+        refreshBtn:      '↻ Uppdatera',
+        colName:         'Namn',
+        colDisplayName:  'Visningsnamn',
+        colDisplayTitle: 'Visas på display istället för symbol',
+        colPrice:        'Pris',
+        colChange:       'Förändring',
+        colPreMarket:    'Förhandel',
+        colAfterHours:   'Efterhandel',
+        loading:         'Laddar data…',
+        fetching:        'Hämtar data…',
+        noTickers:       'Inga tickers tillagda.',
+        errorPrefix:     'Fel:',
+        activelyTrading: 'Handlas aktivt',
+        displayNameHint: 'Visningsnamn på display',
+        sending:         'Skickar…',
+        tickersSent:     'tickers skickade',
+        networkError:    'Nätverksfel',
+        updated:         'Uppdaterad:',
+      },
+    };
+
+    let currentLanguage = 'en';
+
+    function t(key) {
+      return (ui[currentLanguage] || ui.en)[key] || key;
+    }
+
+    function applyUiLanguage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (ui[currentLanguage]?.[key] !== undefined) el.textContent = ui[currentLanguage][key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (ui[currentLanguage]?.[key] !== undefined) el.placeholder = ui[currentLanguage][key];
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.dataset.i18nTitle;
+        if (ui[currentLanguage]?.[key] !== undefined) el.title = ui[currentLanguage][key];
+      });
+    }
+
+    const statusLabels = {
+      en: {
+        pre:     { text: 'Pre-market',  color: '#FFA500' },
+        post:    { text: 'After-hours', color: '#58a6ff' },
+        regular: { text: 'Open',        color: '#3fb950' },
+        closed:  { text: 'Closed',      color: '#6e7681' },
+      },
+      sv: {
+        pre:     { text: 'Förhandel',   color: '#FFA500' },
+        post:    { text: 'Efterhandel', color: '#58a6ff' },
+        regular: { text: 'Öppen',       color: '#3fb950' },
+        closed:  { text: 'Stängt',      color: '#6e7681' },
+      },
+    };
+
+    let quotes = [];
+    let currentStatus = 'closed';
+    let tickerNames = {};
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmt(val, decimals = 2) {
+      if (val == null) return '—';
+      return val.toFixed(decimals);
+    }
+
+    function fmtChange(change, pct) {
+      if (change == null) return '<span class="neutral">—</span>';
+      const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+      const sign = change > 0 ? '+' : '';
+      return `<span class="${cls}">${sign}${fmt(change)} (${sign}${fmt(pct)}%)</span>`;
+    }
+
+    function badgeHtml(change, pct, price) {
+      if (price == null) return '<span class="badge neutral">—</span>';
+      const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+      const sign = (change || 0) > 0 ? '+' : '';
+      const pctStr = change != null ? ` (${sign}${fmt(pct)}%)` : '';
+      return `<span class="badge ${cls}">${fmt(price)}${pctStr}</span>`;
+    }
+
+    function render() {
+      const showPre  = currentStatus === 'pre';
+      document.getElementById('preHeader').style.display  = showPre ? '' : 'none';
+      document.getElementById('postHeader').style.display = '';
+      const rows = quotes.map(q => {
+        if (q.error) {
+          return `<tr>
+            <td class="symbol">${escHtml(q.symbol)}</td>
+            <td colspan="6" class="error-cell">${t('errorPrefix')} ${escHtml(q.error)}</td>
+            <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">✕</button></td>
+          </tr>`;
+        }
+        const priceCls = (q.change || 0) > 0 ? 'up' : (q.change || 0) < 0 ? 'down' : 'neutral';
+        const customName = tickerNames[q.symbol] || '';
+        const namePlaceholder = q.symbol.replace('^', '');
+        return `<tr>
+          <td class="symbol">${escHtml(q.symbol)}${q.is_live ? `<span class="live-dot" title="${t('activelyTrading')}"></span>` : ''}</td>
+          <td class="name" title="${escHtml(q.name)}">${escHtml(q.name)}</td>
+          <td><input class="name-input" data-symbol="${escHtml(q.symbol)}" value="${escHtml(customName)}" placeholder="${escHtml(namePlaceholder)}" title="${t('displayNameHint')}" /></td>
+          <td class="price ${priceCls}">${fmt(q.price)}</td>
+          <td>${fmtChange(q.change, q.pct)}</td>
+          <td style="display:${showPre ? '' : 'none'}">${badgeHtml(q.pre_change, q.pre_pct, q.pre_price)}</td>
+          <td>${badgeHtml(q.post_change, q.post_pct, q.post_price)}</td>
+          <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">✕</button></td>
+        </tr>`;
+      });
+      document.getElementById('tableBody').innerHTML =
+        rows.join('') || `<tr><td colspan="8" class="loading">${t('noTickers')}</td></tr>`;
+    }
+
+    function updateStatusBadge(status) {
+      const labels = statusLabels[currentLanguage] || statusLabels.en;
+      const s = labels[status] || labels.closed;
+      document.getElementById('marketStatus').innerHTML =
+        `<span style="font-size:0.78rem;padding:2px 10px;border-radius:12px;background:#21262d;color:${s.color};font-weight:500">${s.text}</span>`;
+    }
+
+    function applyLanguage() {
+      currentLanguage = document.getElementById('language').value;
+      document.documentElement.lang = currentLanguage;
+      applyUiLanguage();
+      updateStatusBadge(currentStatus);
+      render();
+    }
+
+    async function loadTickerNames() {
+      const res = await fetch('/api/ticker-names');
+      tickerNames = await res.json();
+    }
+
+    async function addTicker() {
+      const input = document.getElementById('addInput');
+      const symbol = input.value.trim().toUpperCase();
+      if (!symbol) return;
+      await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'POST' });
+      input.value = '';
+      await fetchQuotes();
+    }
+
+    async function removeTicker(symbol) {
+      await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'DELETE' });
+      await fetchQuotes();
+    }
+
+    document.getElementById('addInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTicker();
+    });
+
+    document.getElementById('tableBody').addEventListener('keydown', e => {
+      if (e.target.classList.contains('name-input') && e.key === 'Enter') e.target.blur();
+    });
+
+    document.getElementById('tableBody').addEventListener('change', async e => {
+      if (!e.target.classList.contains('name-input')) return;
+      const sym = e.target.dataset.symbol;
+      const name = e.target.value.trim();
+      if (name) {
+        await fetch('/api/ticker-names/' + encodeURIComponent(sym), {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name}),
+        });
+        tickerNames[sym] = name;
+      } else {
+        await fetch('/api/ticker-names/' + encodeURIComponent(sym), { method: 'DELETE' });
+        delete tickerNames[sym];
+      }
+      if (document.getElementById('awtrixEnabled').checked) {
+        const ip = document.getElementById('awtrixIp').value.trim();
+        fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
+      }
+    });
+
+    let refreshTimer = null;
+
+    function applyInterval() {
+      const secs = parseInt(document.getElementById('refreshInterval').value);
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => fetchQuotes(true), secs * 1000);
+    }
+
+    function togglePageDuration() {
+      const isPaged = document.getElementById('displayMode').value === 'paged';
+      document.getElementById('pageDurationWrap').style.display = isPaged ? 'flex' : 'none';
+      document.getElementById('scrollSpeedWrap').style.display = isPaged ? 'none' : 'flex';
+    }
+
+    async function loadSettings() {
+      const res = await fetch('/api/settings');
+      const s = await res.json();
+      document.getElementById('awtrixIp').value = s.awtrix_ip || '';
+      document.getElementById('awtrixEnabled').checked = s.awtrix_enabled;
+      document.getElementById('refreshInterval').value = String(s.refresh_interval || 60);
+      document.getElementById('language').value = s.language || 'en';
+      document.getElementById('displayMode').value = s.display_mode || 'scroll';
+      document.getElementById('pageDuration').value = String(s.page_duration || 5);
+      const spd = s.scroll_speed || 40;
+      document.getElementById('scrollSpeed').value = String(spd);
+      document.getElementById('scrollSpeedVal').textContent = spd + '%';
+      const bri = s.awtrix_brightness ?? 50;
+      document.getElementById('brightness').value = String(bri);
+      document.getElementById('brightnessVal').textContent = bri + '%';
+      currentLanguage = s.language || 'en';
+      document.documentElement.lang = currentLanguage;
+      applyUiLanguage();
+      applyInterval();
+      togglePageDuration();
+    }
+
+    let brightnessTimer = null;
+    function brightnessInput(val) {
+      document.getElementById('brightnessVal').textContent = val + '%';
+      clearTimeout(brightnessTimer);
+      brightnessTimer = setTimeout(() => applyBrightness(val), 400);
+    }
+
+    function setBrightness(val) {
+      document.getElementById('brightness').value = String(val);
+      document.getElementById('brightnessVal').textContent = val + '%';
+      applyBrightness(val);
+    }
+
+    async function applyBrightness(val) {
+      await fetch('/api/brightness', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({level: parseInt(val)}),
+      });
+    }
+
+    async function saveSettings() {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          awtrix_ip: document.getElementById('awtrixIp').value.trim(),
+          awtrix_enabled: document.getElementById('awtrixEnabled').checked,
+          refresh_interval: parseInt(document.getElementById('refreshInterval').value),
+          language: document.getElementById('language').value,
+          display_mode: document.getElementById('displayMode').value,
+          page_duration: parseInt(document.getElementById('pageDuration').value) || 5,
+          scroll_speed: parseInt(document.getElementById('scrollSpeed').value) || 40,
+        })
+      });
+    }
+
+    document.getElementById('awtrixIp').addEventListener('change', saveSettings);
+
+    async function pushNow() {
+      const btn = document.getElementById('pushBtn');
+      const status = document.getElementById('pushStatus');
+      await saveSettings();
+      btn.disabled = true;
+      status.textContent = t('sending');
+      status.className = '';
+      try {
+        const ip = document.getElementById('awtrixIp').value.trim();
+        const params = new URLSearchParams({ push: true, ip });
+        const res = await fetch(`/api/refresh?${params}`);
+        const data = await res.json();
+        quotes = data.quotes;
+        currentStatus = data.market_status;
+        render();
+        updateStatusBadge(data.market_status);
+        const pushed = data.quotes.filter(q => !q.error && q.pct != null).length;
+        status.textContent = `✓ ${pushed} ${t('tickersSent')}`;
+        status.className = 'ok';
+      } catch (e) {
+        status.textContent = `✗ ${t('networkError')}`;
+        status.className = 'err';
+      }
+      btn.disabled = false;
+      setTimeout(() => { status.textContent = ''; }, 4000);
+    }
+
+    async function fetchQuotes(silent = false) {
+      if (!silent) {
+        document.getElementById('tableBody').innerHTML =
+          `<tr><td colspan="8" class="loading">${t('fetching')}</td></tr>`;
+      }
+      const doPush = document.getElementById('awtrixEnabled').checked;
+      const ip = document.getElementById('awtrixIp').value.trim();
+      const params = new URLSearchParams({ push: doPush, ip });
+      const res = await fetch(`/api/refresh?${params}`);
+      const data = await res.json();
+      quotes = data.quotes;
+      currentStatus = data.market_status;
+      document.getElementById('lastUpdated').textContent =
+        t('updated') + ' ' + new Date().toLocaleTimeString();
+      render();
+      updateStatusBadge(data.market_status);
+    }
+
+    Promise.all([loadSettings(), loadTickerNames()]).then(() => fetchQuotes());
+  </script>
+</body>
+</html>

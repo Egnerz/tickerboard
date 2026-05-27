@@ -1,0 +1,57 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            pyinstaller_name: Tickerboard
+            artifact: Tickerboard.exe
+            entry: main.py
+            add_data: "static;static"
+            extra_flags: "--windowed"
+
+          - os: ubuntu-22.04
+            pyinstaller_name: tickerboard-linux
+            artifact: tickerboard-linux
+            entry: main_linux.py
+            add_data: "static:static"
+            extra_flags: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Build binary
+        shell: bash
+        run: |
+          pyinstaller \
+            --onefile \
+            --name "${{ matrix.pyinstaller_name }}" \
+            --add-data "${{ matrix.add_data }}" \
+            ${{ matrix.extra_flags }} \
+            ${{ matrix.entry }}
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact }}
+          generate_release_notes: true
