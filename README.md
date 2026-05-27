@@ -1,6 +1,6 @@
 # Tickerboard
 
-Real-time stock and index overview in your browser — with automatic push to your [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) pixel display running [AWTRIX3](https://blueforcer.github.io/awtrix3/) firmware.
+Real-time stock and index overview in your browser - with automatic push to your [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) pixel display running [AWTRIX3](https://blueforcer.github.io/awtrix3/) firmware.
 
 ![GitHub Release](https://img.shields.io/github/v/release/Egnerz/tickerboard)
 
@@ -8,7 +8,7 @@ Real-time stock and index overview in your browser — with automatic push to yo
 
 ## Getting started
 
-### Step 1 — Flash AWTRIX3 firmware on your Ulanzi TC001
+### Step 1 - Flash AWTRIX3 firmware on your Ulanzi TC001
 
 The TC001 ships with its own firmware. You need to replace it with AWTRIX3 to use it with Tickerboard.
 
@@ -18,13 +18,13 @@ The TC001 ships with its own firmware. You need to replace it with AWTRIX3 to us
 4. Click **Connect**, select the TC001 serial port, and follow the on-screen steps
 5. After flashing, the device reboots and opens a Wi-Fi hotspot named **AWTRIX_XXXXXX**
 6. Connect your computer to that hotspot, go to **http://4.3.2.1**, enter your Wi-Fi credentials and save
-7. The device connects to your network — check your router or the display itself for its IP address (e.g. `192.168.1.54`)
+7. The device connects to your network - check your router or the display itself for its IP address (e.g. `192.168.1.54`)
 
-> **Note:** Flashing replaces the original firmware. The process is reversible — you can always re-flash the stock firmware from Ulanzi's website if needed.
+> **Note:** Flashing replaces the original firmware. The process is reversible - you can always re-flash the stock firmware from Ulanzi's website if needed.
 
 ---
 
-### Step 2 — Download Tickerboard
+### Step 2 - Download Tickerboard
 
 Get the latest release from [Releases](../../releases/latest):
 
@@ -35,7 +35,7 @@ Get the latest release from [Releases](../../releases/latest):
 
 ---
 
-### Step 3 — Run Tickerboard
+### Step 3 - Run Tickerboard
 
 **Windows**
 
@@ -52,12 +52,12 @@ Then open `http://localhost:8000` in your browser.
 
 ---
 
-### Step 4 — Connect to your display
+### Step 4 - Connect to your display
 
 1. Open Tickerboard in the browser
 2. Enter the TC001's IP address in the **AWTRIX IP** field
 3. Check **Auto-push to device**
-4. Click **↻ Refresh** — your tickers will appear on the display
+4. Click **↻ Refresh** - your tickers will appear on the display
 
 ---
 
@@ -73,7 +73,7 @@ Then open `http://localhost:8000` in your browser.
 
 ## Configuration
 
-All settings are saved automatically to `config.json` in the same folder as the binary — no manual editing needed. The file is created on first run.
+All settings are saved automatically to `config.json` in the same folder as the binary - no manual editing needed. The file is created on first run.
 
 ---
 
