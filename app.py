@@ -405,9 +405,23 @@ async def set_brightness(request: Request):
             headers={"Content-Type": "application/json"},
         )
         urllib.request.urlopen(req, timeout=5)
-        return {"ok": True}
+        return {"ok": True, "bri": bri, "ip": ip}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": str(e), "ip": ip}
+
+@app.get("/api/ping-awtrix")
+def ping_awtrix():
+    config = load_config()
+    ip = config.get("awtrix_ip", "").strip()
+    if not ip:
+        return {"ok": False, "error": "No AWTRIX IP configured", "ip": ""}
+    try:
+        req = urllib.request.Request(f"http://{ip}/api/stats", method="GET")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            stats = json.loads(resp.read().decode())
+        return {"ok": True, "ip": ip, "bri": stats.get("bri"), "version": stats.get("version")}
+    except Exception as e:
+        return {"ok": False, "error": str(e), "ip": ip}
 
 @app.get("/api/settings")
 def get_settings():

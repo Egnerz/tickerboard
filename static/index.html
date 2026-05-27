@@ -78,6 +78,7 @@
   <div class="settings-bar" id="settingsBar">
     <span class="settings-label">AWTRIX IP:</span>
     <input id="awtrixIp" type="text" placeholder="192.168.2.54" style="width:150px" />
+    <button onclick="pingAwtrix()" id="pingBtn" data-i18n="testConn" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.82rem" title="Test connection">Test</button>
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
       <input type="checkbox" id="awtrixEnabled" onchange="saveSettings()">
       <span data-i18n="autoPush">Auto-push to device</span>
@@ -193,6 +194,10 @@
         tickersSent:     'tickers sent',
         networkError:    'Network error',
         updated:         'Updated:',
+        testConn:        'Test',
+        connOk:          'Connected',
+        connFail:        'No connection',
+        briSent:         'Brightness set',
       },
       sv: {
         autoPush:        'Auto-push till enhet',
@@ -235,6 +240,10 @@
         tickersSent:     'tickers skickade',
         networkError:    'Nätverksfel',
         updated:         'Uppdaterad:',
+        testConn:        'Test',
+        connOk:          'Ansluten',
+        connFail:        'Ingen anslutning',
+        briSent:         'Ljusstyrka inställd',
       },
     };
 
@@ -454,6 +463,30 @@
       }, 600);
     }
 
+    async function pingAwtrix() {
+      const btn = document.getElementById('pingBtn');
+      const status = document.getElementById('pushStatus');
+      btn.disabled = true;
+      status.textContent = '…';
+      status.className = '';
+      try {
+        const res = await fetch('/api/ping-awtrix');
+        const data = await res.json();
+        if (data.ok) {
+          status.textContent = `✓ ${t('connOk')} (${data.ip}) v${data.version || '?'} BRI=${data.bri ?? '?'}`;
+          status.className = 'ok';
+        } else {
+          status.textContent = `✗ ${t('connFail')}: ${data.error} (IP: ${data.ip || 'not set'})`;
+          status.className = 'err';
+        }
+      } catch (e) {
+        status.textContent = `✗ ${t('networkError')}`;
+        status.className = 'err';
+      }
+      btn.disabled = false;
+      setTimeout(() => { status.textContent = ''; }, 8000);
+    }
+
     async function applyBrightness(val) {
       const res = await fetch('/api/brightness', {
         method: 'POST',
@@ -462,10 +495,14 @@
       });
       const data = await res.json();
       const status = document.getElementById('pushStatus');
-      if (!data.ok) {
-        status.textContent = `✗ ${data.error || t('networkError')}`;
+      if (data.ok) {
+        status.textContent = `✓ ${t('briSent')} ${val}% → ${data.ip}`;
+        status.className = 'ok';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } else {
+        status.textContent = `✗ ${data.error || t('networkError')} (IP: ${data.ip || 'not set'})`;
         status.className = 'err';
-        setTimeout(() => { status.textContent = ''; }, 4000);
+        setTimeout(() => { status.textContent = ''; }, 6000);
       }
     }
 
