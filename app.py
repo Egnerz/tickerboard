@@ -69,7 +69,7 @@ if getattr(sys, 'frozen', False):
     _base_dir = os.path.dirname(sys.executable)
     _static_dir = os.path.join(sys._MEIPASS, "static")
 else:
-    _base_dir = os.path.dirname(os.path.abspath(__file__))
+    _base_dir = os.path.dirname(os.path.realpath(__file__))
     _static_dir = os.path.join(_base_dir, "static")
 
 CONFIG_FILE = os.path.join(_base_dir, "config.json")
