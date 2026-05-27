@@ -26,7 +26,19 @@ if __name__ == '__main__':
     print(f'Tickerboard körs på http://localhost:{PORT}')
     print('Tryck Ctrl+C för att avsluta.')
 
+    def _cleanup_awtrix():
+        try:
+            import app as tickerapp
+            config = tickerapp.load_config()
+            ip = config.get("awtrix_ip", "").strip()
+            if ip:
+                for name in list(tickerapp._last_awtrix_apps):
+                    tickerapp.push_to_awtrix(ip, {"lifetime": 1}, name=name)
+        except Exception:
+            pass
+
     def _shutdown(sig, frame):
+        _cleanup_awtrix()
         print('\nAvslutar...')
         sys.exit(0)
 

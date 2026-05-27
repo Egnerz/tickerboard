@@ -29,7 +29,19 @@ def _make_icon():
 def _open_browser(icon=None, item=None):
     webbrowser.open(f'http://localhost:{PORT}')
 
+def _cleanup_awtrix():
+    try:
+        import app as tickerapp
+        config = tickerapp.load_config()
+        ip = config.get("awtrix_ip", "").strip()
+        if ip:
+            for name in list(tickerapp._last_awtrix_apps):
+                tickerapp.push_to_awtrix(ip, {"lifetime": 1}, name=name)
+    except Exception:
+        pass
+
 def _quit(icon, item):
+    _cleanup_awtrix()
     icon.stop()
     os._exit(0)
 
