@@ -395,18 +395,19 @@ async def set_brightness(request: Request):
     config["awtrix_brightness"] = level
     save_config(config)
     ip = config.get("awtrix_ip", "").strip()
-    if ip:
-        bri = round(level * 255 / 100)
-        data = json.dumps({"BRI": bri}).encode()
-        try:
-            req = urllib.request.Request(
-                f"http://{ip}/api/settings", data=data, method="POST",
-                headers={"Content-Type": "application/json"},
-            )
-            urllib.request.urlopen(req, timeout=5)
-        except Exception:
-            pass
-    return {"ok": True}
+    if not ip:
+        return {"ok": False, "error": "No AWTRIX IP configured"}
+    bri = round(level * 255 / 100)
+    data = json.dumps({"BRI": bri}).encode()
+    try:
+        req = urllib.request.Request(
+            f"http://{ip}/api/settings", data=data, method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        urllib.request.urlopen(req, timeout=5)
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 @app.get("/api/settings")
 def get_settings():

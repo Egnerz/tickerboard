@@ -107,7 +107,7 @@
     </span>
     <span id="scrollSpeedWrap" style="display:none;align-items:center;gap:6px">
       <span class="settings-label" data-i18n="scrollSpeed">Scroll speed:</span>
-      <input id="scrollSpeed" type="range" min="10" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'; saveSettings()" style="width:80px;accent-color:#58a6ff;cursor:pointer" />
+      <input id="scrollSpeed" type="range" min="10" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'; saveSettings(); triggerPush()" style="width:80px;accent-color:#58a6ff;cursor:pointer" />
       <span id="scrollSpeedVal" style="color:#8b949e;font-size:0.82rem;min-width:34px">40%</span>
     </span>
     <span style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
@@ -444,12 +444,29 @@
       applyBrightness(val);
     }
 
+    let pushDebounce = null;
+    function triggerPush() {
+      if (!document.getElementById('awtrixEnabled').checked) return;
+      clearTimeout(pushDebounce);
+      pushDebounce = setTimeout(() => {
+        const ip = document.getElementById('awtrixIp').value.trim();
+        fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
+      }, 600);
+    }
+
     async function applyBrightness(val) {
-      await fetch('/api/brightness', {
+      const res = await fetch('/api/brightness', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({level: parseInt(val)}),
       });
+      const data = await res.json();
+      const status = document.getElementById('pushStatus');
+      if (!data.ok) {
+        status.textContent = `✗ ${data.error || t('networkError')}`;
+        status.className = 'err';
+        setTimeout(() => { status.textContent = ''; }, 4000);
+      }
     }
 
     async function saveSettings() {
