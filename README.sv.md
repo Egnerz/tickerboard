@@ -4,6 +4,8 @@ Realtidsöversikt för aktier och index i webbläsaren - med automatisk push til
 
 ![GitHub Release](https://img.shields.io/github/v/release/Egnerz/tickerboard)
 
+![Tickerboard skärmbild](static/img/screenshot.png)
+
 [English instructions](README.md)
 
 ---
