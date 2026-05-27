@@ -36,6 +36,7 @@ Hämta senaste versionen under [Releases](../../releases/latest):
 |-----------|-----|
 | Windows   | `Tickerboard.exe` |
 | Linux     | `tickerboard-linux` |
+| macOS     | `tickerboard-mac` |
 
 ---
 
@@ -53,6 +54,13 @@ chmod +x tickerboard-linux
 ./tickerboard-linux
 ```
 Öppna sedan `http://localhost:8000` i webbläsaren.
+
+**macOS**
+```bash
+chmod +x tickerboard-mac
+./tickerboard-mac
+```
+Webbläsaren öppnas automatiskt. Om macOS blockerar appen, högerklicka och välj **Öppna**, bekräfta sedan.
 
 ---
 
@@ -98,6 +106,12 @@ build.bat
 ```bash
 pip install pyinstaller
 pyinstaller --onefile --name tickerboard-linux --add-data "static:static" main_linux.py
+```
+
+**macOS:**
+```bash
+pip install pyinstaller
+pyinstaller --onefile --name tickerboard-mac --add-data "static:static" main_mac.py
 ```
 
 **Kör i dev-läge:**

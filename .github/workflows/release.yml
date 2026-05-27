@@ -28,6 +28,13 @@ jobs:
             add_data: "static:static"
             extra_flags: ""
 
+          - os: macos-latest
+            pyinstaller_name: tickerboard-mac
+            artifact: tickerboard-mac
+            entry: main_mac.py
+            add_data: "static:static"
+            extra_flags: ""
+
     runs-on: ${{ matrix.os }}
 
     steps:
