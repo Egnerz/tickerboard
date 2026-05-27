@@ -4,6 +4,8 @@ Real-time stock and index overview in your browser - with automatic push to your
 
 ![GitHub Release](https://img.shields.io/github/v/release/Egnerz/tickerboard)
 
+[Svenska instruktioner](README.sv.md)
+
 ---
 
 ## Getting started
