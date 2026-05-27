@@ -393,8 +393,11 @@ async def set_brightness(request: Request):
     level = max(1, min(100, int(body.get("level", 50))))
     config = load_config()
     config["awtrix_brightness"] = level
+    # Use IP from request body so it works even before settings are saved
+    ip = body.get("ip", "").strip() or config.get("awtrix_ip", "").strip()
+    if ip:
+        config["awtrix_ip"] = ip
     save_config(config)
-    ip = config.get("awtrix_ip", "").strip()
     if not ip:
         return {"ok": False, "error": "No AWTRIX IP configured"}
     bri = round(level * 255 / 100)
@@ -410,9 +413,9 @@ async def set_brightness(request: Request):
         return {"ok": False, "error": str(e), "ip": ip}
 
 @app.get("/api/ping-awtrix")
-def ping_awtrix():
+def ping_awtrix(ip: str = ""):
     config = load_config()
-    ip = config.get("awtrix_ip", "").strip()
+    ip = ip.strip() or config.get("awtrix_ip", "").strip()
     if not ip:
         return {"ok": False, "error": "No AWTRIX IP configured", "ip": ""}
     try:

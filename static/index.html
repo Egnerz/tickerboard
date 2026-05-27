@@ -469,8 +469,9 @@
       btn.disabled = true;
       status.textContent = '…';
       status.className = '';
+      const ip = document.getElementById('awtrixIp').value.trim();
       try {
-        const res = await fetch('/api/ping-awtrix');
+        const res = await fetch('/api/ping-awtrix?' + new URLSearchParams({ip}));
         const data = await res.json();
         if (data.ok) {
           status.textContent = `✓ ${t('connOk')} (${data.ip}) v${data.version || '?'} BRI=${data.bri ?? '?'}`;
@@ -488,10 +489,11 @@
     }
 
     async function applyBrightness(val) {
+      const ip = document.getElementById('awtrixIp').value.trim();
       const res = await fetch('/api/brightness', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({level: parseInt(val)}),
+        body: JSON.stringify({level: parseInt(val), ip}),
       });
       const data = await res.json();
       const status = document.getElementById('pushStatus');
