@@ -1,8 +1,30 @@
 # Tickerboard
 
-Real-time stock and index overview in your browser — with automatic push to your [AWTRIX3](https://blueforcer.github.io/awtrix3/) display.
+Real-time stock and index overview in your browser — with automatic push to your [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) pixel display running [AWTRIX3](https://blueforcer.github.io/awtrix3/) firmware.
 
-## Download
+![GitHub Release](https://img.shields.io/github/v/release/Egnerz/tickerboard)
+
+---
+
+## Getting started
+
+### Step 1 — Flash AWTRIX3 firmware on your Ulanzi TC001
+
+The TC001 ships with its own firmware. You need to replace it with AWTRIX3 to use it with Tickerboard.
+
+1. Connect the TC001 to your computer via USB-C
+2. Open **Google Chrome** or **Microsoft Edge** (other browsers do not support Web Serial)
+3. Go to the AWTRIX3 web flasher: **https://blueforcer.github.io/awtrix3/#/flasher**
+4. Click **Connect**, select the TC001 serial port, and follow the on-screen steps
+5. After flashing, the device reboots and opens a Wi-Fi hotspot named **AWTRIX_XXXXXX**
+6. Connect your computer to that hotspot, go to **http://4.3.2.1**, enter your Wi-Fi credentials and save
+7. The device connects to your network — check your router or the display itself for its IP address (e.g. `192.168.1.54`)
+
+> **Note:** Flashing replaces the original firmware. The process is reversible — you can always re-flash the stock firmware from Ulanzi's website if needed.
+
+---
+
+### Step 2 — Download Tickerboard
 
 Get the latest release from [Releases](../../releases/latest):
 
@@ -11,17 +33,33 @@ Get the latest release from [Releases](../../releases/latest):
 | Windows  | `Tickerboard.exe` |
 | Linux    | `tickerboard-linux` |
 
-### Windows
-Double-click `Tickerboard.exe`. A tray icon appears and the browser opens automatically at `http://localhost:8000`. Right-click the tray icon to open or quit.
+---
 
-> **Note:** Windows Defender may warn about an unknown publisher. Click "More info" → "Run anyway".
+### Step 3 — Run Tickerboard
 
-### Linux
+**Windows**
+
+Double-click `Tickerboard.exe`. A tray icon appears in the system tray and the browser opens automatically at `http://localhost:8000`.
+
+> Windows Defender may warn about an unknown publisher. Click **More info** → **Run anyway**.
+
+**Linux**
 ```bash
 chmod +x tickerboard-linux
 ./tickerboard-linux
 ```
 Then open `http://localhost:8000` in your browser.
+
+---
+
+### Step 4 — Connect to your display
+
+1. Open Tickerboard in the browser
+2. Enter the TC001's IP address in the **AWTRIX IP** field
+3. Check **Auto-push to device**
+4. Click **↻ Refresh** — your tickers will appear on the display
+
+---
 
 ## Features
 
@@ -31,11 +69,13 @@ Then open `http://localhost:8000` in your browser.
 - Prioritises actively trading markets (e.g. OMX30 in the morning before US opens)
 - Adjustable display brightness with Night/Day presets
 - Custom display names per ticker (e.g. `INVE-B.ST` → `Investor`)
-- English and Swedish labels
+- English and Swedish UI
 
 ## Configuration
 
-Settings are saved automatically to `config.json` (created on first run) in the same folder as the binary. No code changes needed.
+All settings are saved automatically to `config.json` in the same folder as the binary — no manual editing needed. The file is created on first run.
+
+---
 
 ## Building from source
 
