@@ -126,7 +126,11 @@ def fetch_quotes(symbols: list) -> list:
     def extract(sym: str) -> dict:
         try:
             if single:
-                close = raw["Close"]
+                # Newer yfinance versions may use ticker as top-level key even for single symbols
+                if isinstance(raw.columns, pd.MultiIndex):
+                    close = raw[sym]["Close"] if sym in raw else None
+                else:
+                    close = raw["Close"] if "Close" in raw.columns else None
             else:
                 close = raw[sym]["Close"] if sym in raw else None
 
