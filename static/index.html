@@ -55,6 +55,7 @@
       padding: 0 20px; height: 50px;
       background: var(--bg-2);
       border-bottom: 1px solid var(--border);
+      overflow: visible;
     }
     .nav-left { display: flex; align-items: center; gap: 14px; }
     .logo {
@@ -83,6 +84,32 @@
     }
     .ip-test:hover { color: var(--text-1); background: var(--bg-4); }
     .ip-test:disabled { opacity: 0.4; cursor: default; }
+    .ip-test.active { color: var(--accent); }
+
+    #deviceDropdown {
+      position: absolute; top: 50px; left: 0; z-index: 200;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 9px; padding: 14px 16px; min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .dev-drop-title {
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+    }
+    .dev-drop-checks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .dev-check-lbl {
+      display: flex; align-items: center; gap: 7px;
+      cursor: pointer; color: var(--text-2); font-size: 0.8rem;
+    }
+    .dev-check-lbl input[type=checkbox] { accent-color: var(--accent); width: 13px; height: 13px; }
+    .dev-reboot-btn {
+      width: 100%; padding: 5px 0; border-radius: 5px; cursor: pointer;
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--text-2); font-size: 0.75rem;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .dev-reboot-btn:hover { border-color: var(--border-2); color: var(--text-1); }
+    .dev-reboot-btn:disabled { opacity: 0.5; cursor: default; }
 
     .nav-right { display: flex; align-items: center; gap: 8px; }
 
@@ -330,7 +357,41 @@
       <input id="awtrixIp" type="text" placeholder="t.ex. 192.168.1.100" />
       <div class="ip-sep"></div>
       <button class="ip-test" onclick="pingAwtrix()" id="pingBtn" data-i18n="testConn">Test</button>
+      <div class="ip-sep"></div>
+      <button class="ip-test" onclick="toggleDevicePanel()" id="devicePanelBtn" title="Device settings">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
+  </div>
+
+  <div id="deviceDropdown" style="display:none">
+    <div class="dev-drop-title" data-i18n="devicePanel">Show on device</div>
+    <div class="dev-drop-checks">
+      <label class="dev-check-lbl">
+        <input type="checkbox" id="showTim" onchange="setDeviceIndicator('TIM', this.checked)">
+        <span data-i18n="time">Time</span>
+      </label>
+      <label class="dev-check-lbl">
+        <input type="checkbox" id="showDat" onchange="setDeviceIndicator('DAT', this.checked)">
+        <span data-i18n="date">Date</span>
+      </label>
+      <label class="dev-check-lbl">
+        <input type="checkbox" id="showBat" onchange="setDeviceIndicator('BAT', this.checked)">
+        <span data-i18n="battery">Battery</span>
+      </label>
+      <label class="dev-check-lbl">
+        <input type="checkbox" id="showTemp" onchange="setDeviceIndicator('TEMP', this.checked)">
+        <span data-i18n="temperature">Temp</span>
+      </label>
+      <label class="dev-check-lbl">
+        <input type="checkbox" id="showHum" onchange="setDeviceIndicator('HUM', this.checked)">
+        <span data-i18n="humidity">Humidity</span>
+      </label>
+    </div>
+    <button class="dev-reboot-btn" onclick="rebootDevice(this)" data-i18n="reboot">Reboot</button>
   </div>
   <div class="nav-right">
     <span id="pushStatus"></span>
@@ -398,31 +459,6 @@
       <option value="en">English</option>
       <option value="sv">Svenska</option>
     </select>
-  </div>
-  <div class="s-sep"></div>
-  <div class="s-group">
-    <span class="s-label" data-i18n="devicePanel">Show on device</span>
-    <label class="s-check-lbl">
-      <input type="checkbox" id="showTim" onchange="setDeviceIndicator('TIM', this.checked)">
-      <span data-i18n="time">Time</span>
-    </label>
-    <label class="s-check-lbl">
-      <input type="checkbox" id="showDat" onchange="setDeviceIndicator('DAT', this.checked)">
-      <span data-i18n="date">Date</span>
-    </label>
-    <label class="s-check-lbl">
-      <input type="checkbox" id="showBat" onchange="setDeviceIndicator('BAT', this.checked)">
-      <span data-i18n="battery">Battery</span>
-    </label>
-    <label class="s-check-lbl">
-      <input type="checkbox" id="showTemp" onchange="setDeviceIndicator('TEMP', this.checked)">
-      <span data-i18n="temperature">Temp</span>
-    </label>
-    <label class="s-check-lbl">
-      <input type="checkbox" id="showHum" onchange="setDeviceIndicator('HUM', this.checked)">
-      <span data-i18n="humidity">Humidity</span>
-    </label>
-    <button class="s-btn" onclick="rebootDevice(this)" data-i18n="reboot">Reboot</button>
   </div>
 </div>
 
@@ -1006,6 +1042,24 @@
     setTimeout(() => { status.textContent = ''; }, 3000);
   }
 
+  function toggleDevicePanel() {
+    const drop = document.getElementById('deviceDropdown');
+    const btn  = document.getElementById('devicePanelBtn');
+    const open = drop.style.display === 'none';
+    drop.style.display = open ? '' : 'none';
+    btn.classList.toggle('active', open);
+    if (open) loadDeviceIndicators();
+  }
+
+  document.addEventListener('click', e => {
+    const drop = document.getElementById('deviceDropdown');
+    const btn  = document.getElementById('devicePanelBtn');
+    if (drop.style.display !== 'none' && !drop.contains(e.target) && !btn.contains(e.target)) {
+      drop.style.display = 'none';
+      btn.classList.remove('active');
+    }
+  });
+
   async function loadDeviceIndicators() {
     const ip = document.getElementById('awtrixIp').value.trim();
     if (!ip) return;
@@ -1076,10 +1130,7 @@
     document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
   });
 
-  Promise.all([loadSettings(), loadTickerNames(), loadDefaultIndices()]).then(() => {
-    fetchQuotes();
-    loadDeviceIndicators();
-  });
+  Promise.all([loadSettings(), loadTickerNames(), loadDefaultIndices()]).then(() => fetchQuotes());
 </script>
 </body>
 </html>
