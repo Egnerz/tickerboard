@@ -1,90 +1,324 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickerboard</title>
   <style>
+    :root[data-theme="dark"] {
+      --bg:        #0d1117;
+      --bg-2:      #161b24;
+      --bg-3:      #1c2333;
+      --bg-4:      #232d3e;
+      --border:    #2a3347;
+      --border-2:  #3a4a60;
+      --text-1:    #dde3ec;
+      --text-2:    #7a8fa8;
+      --text-3:    #445060;
+      --accent:    #c5953d;
+      --accent-bg: rgba(197,149,61,0.1);
+      --up:        #3db87a;
+      --up-dim:    rgba(61,184,122,0.08);
+      --down:      #e05555;
+      --down-dim:  rgba(224,85,85,0.08);
+    }
+    :root[data-theme="light"] {
+      --bg:        #f0f2f5;
+      --bg-2:      #ffffff;
+      --bg-3:      #f4f6f9;
+      --bg-4:      #e8eaed;
+      --border:    #dde1e7;
+      --border-2:  #bfc4cc;
+      --text-1:    #1a2130;
+      --text-2:    #566272;
+      --text-3:    #96a3b0;
+      --accent:    #9b7220;
+      --accent-bg: rgba(155,114,32,0.08);
+      --up:        #18875a;
+      --up-dim:    rgba(24,135,90,0.08);
+      --down:      #c0392b;
+      --down-dim:  rgba(192,57,43,0.08);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; padding: 24px; }
-
-    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 20px; color: #58a6ff; letter-spacing: 0.5px; }
-
-    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    .toolbar input {
-      background: #161b22; border: 1px solid #30363d; color: #e6edf3;
-      padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;
+    body {
+      background: var(--bg); color: var(--text-1);
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh; transition: background 0.2s, color 0.2s;
+      font-size: 14px;
     }
-    .toolbar input:focus { outline: none; border-color: #58a6ff; }
-    .toolbar button {
-      background: #238636; color: #fff; border: none; padding: 8px 16px;
-      border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
-    }
-    .toolbar button:hover { background: #2ea043; }
-    .toolbar button.refresh { background: #1f6feb; }
-    .toolbar button.refresh:hover { background: #388bfd; }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    thead th {
-      background: #161b22; padding: 10px 14px; text-align: left;
-      color: #8b949e; font-weight: 500; border-bottom: 1px solid #21262d;
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 50px;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      font-size: 0.88rem; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--accent); display: flex; align-items: center; gap: 7px;
       white-space: nowrap;
     }
-    tbody tr { border-bottom: 1px solid #21262d; transition: background 0.15s; }
-    tbody tr:hover { background: #161b22; }
-    tbody td { padding: 10px 14px; white-space: nowrap; }
+    .logo svg { opacity: 0.9; }
 
-    .symbol { font-weight: 600; color: #58a6ff; font-size: 0.95rem; }
-    .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #3fb950; margin-left: 5px; vertical-align: middle; }
-    .name { color: #8b949e; font-size: 0.82rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
-    .price { font-weight: 600; }
-    .up { color: #3fb950; }
-    .down { color: #f85149; }
-    .neutral { color: #8b949e; }
-    .badge { font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; font-weight: 500; display: inline-block; }
-    .badge.up { background: #0d4429; color: #3fb950; }
-    .badge.down { background: #4d1616; color: #f85149; }
-    .badge.neutral { background: #21262d; color: #8b949e; }
-    .del-btn { background: none; border: none; color: #6e7681; cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 4px; }
-    .del-btn:hover { color: #f85149; background: #2d1515; }
-    .settings-bar {
-      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-      padding: 12px 16px; margin-bottom: 16px;
+    /* IP pill */
+    .ip-pill {
+      display: flex; align-items: center; gap: 0;
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: 7px; overflow: hidden; height: 32px;
     }
-    .settings-label { color: #8b949e; font-size: 0.85rem; }
-    .push-btn { background: #6e40c9; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
-    .push-btn:hover { background: #8957e5; }
-    .push-btn:disabled { opacity: 0.5; cursor: default; }
-    #pushStatus { font-size: 0.8rem; }
-    #pushStatus.ok { color: #3fb950; }
-    #pushStatus.err { color: #f85149; }
-    .loading { color: #8b949e; font-size: 0.85rem; padding: 20px 0; }
-    .error-cell { color: #f85149; font-size: 0.8rem; }
-    .last-updated { color: #6e7681; font-size: 0.78rem; margin-bottom: 16px; }
+    .ip-pill input {
+      background: none; border: none; color: var(--text-1);
+      font-size: 0.8rem; width: 130px; padding: 0 10px; outline: none; height: 100%;
+    }
+    .ip-pill input::placeholder { color: var(--text-3); }
+    .ip-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+    .ip-test {
+      background: none; border: none; color: var(--text-2);
+      font-size: 0.75rem; padding: 0 10px; cursor: pointer; height: 100%;
+      transition: color 0.15s, background 0.15s; white-space: nowrap;
+    }
+    .ip-test:hover { color: var(--text-1); background: var(--bg-4); }
+    .ip-test:disabled { opacity: 0.4; cursor: default; }
+
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+
+    /* Gold primary button */
+    .btn-gold {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--accent); color: #0d1117; border: none;
+      padding: 0 16px; height: 32px; border-radius: 7px; cursor: pointer;
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em;
+      transition: opacity 0.15s; white-space: nowrap;
+    }
+    .btn-gold:hover { opacity: 0.88; }
+    .btn-gold:disabled { opacity: 0.4; cursor: default; }
+
+    .icon-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 7px;
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--text-2); cursor: pointer; font-size: 0.95rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .icon-btn:hover { background: var(--bg-4); border-color: var(--border-2); }
+
+    #pushStatus { font-size: 0.75rem; white-space: nowrap; }
+    #pushStatus.ok  { color: var(--up); }
+    #pushStatus.err { color: var(--down); }
+
+    /* ── Settings row ── */
+    .settings-row {
+      display: flex; align-items: center; gap: 0;
+      height: 40px; padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-2);
+      overflow-x: auto;
+    }
+    .s-group {
+      display: flex; align-items: center; gap: 7px;
+      padding: 0 14px; height: 100%; flex-shrink: 0;
+    }
+    .s-group:first-child { padding-left: 0; }
+    .s-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+    .s-label { color: var(--text-3); font-size: 0.72rem; white-space: nowrap; }
+    .s-select {
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--text-2); border-radius: 6px; padding: 0 7px;
+      height: 26px; font-size: 0.75rem; cursor: pointer;
+    }
+    .s-select:focus { outline: none; border-color: var(--accent); }
+    .s-range { accent-color: var(--accent); cursor: pointer; width: 70px; }
+    .s-val { color: var(--text-2); font-size: 0.75rem; min-width: 30px; }
+    .s-btn {
+      font-size: 0.7rem; padding: 0 8px; height: 24px; border-radius: 5px; cursor: pointer;
+      background: var(--bg-3); border: 1px solid var(--border); color: var(--text-3);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .s-btn:hover { border-color: var(--border-2); color: var(--text-2); }
+    .s-check-lbl {
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; color: var(--text-2); font-size: 0.75rem; white-space: nowrap;
+    }
+    .s-check-lbl input[type=checkbox] { accent-color: var(--accent); width: 13px; height: 13px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 12px 20px 10px;
+    }
+
+    /* Integrated search bar */
+    .search-bar {
+      display: flex; align-items: center;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; height: 34px;
+      transition: border-color 0.15s;
+    }
+    .search-bar:focus-within { border-color: var(--accent); }
+    .search-icon {
+      padding: 0 10px 0 12px; color: var(--text-3); display: flex; align-items: center; flex-shrink: 0;
+    }
+    .search-bar input {
+      background: none; border: none; color: var(--text-1);
+      font-size: 0.82rem; width: 200px; outline: none; height: 100%;
+    }
+    .search-bar input::placeholder { color: var(--text-3); }
+    .search-inner-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
+    .search-add-btn {
+      background: none; border: none; color: var(--text-2); cursor: pointer;
+      font-size: 0.75rem; font-weight: 600; padding: 0 12px; height: 100%;
+      white-space: nowrap; transition: background 0.15s, color 0.15s;
+    }
+    .search-add-btn:hover { background: var(--bg-3); color: var(--text-1); }
+    .search-indices-btn {
+      background: none; border: none; border-left: 1px solid var(--border);
+      color: var(--text-2); cursor: pointer;
+      font-size: 0.75rem; padding: 0 12px; height: 100%;
+      display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .search-indices-btn:hover { background: var(--bg-3); color: var(--text-1); }
+    .search-indices-btn.active { color: var(--accent); border-left-color: var(--border); }
+
+    .btn-ghost {
+      background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2);
+      font-size: 0.78rem; padding: 0 12px; height: 34px; border-radius: 7px;
+      cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--border-2); color: var(--text-1); }
+
+    .toolbar-right {
+      margin-left: auto; display: flex; align-items: center; gap: 10px;
+      font-size: 0.72rem; color: var(--text-3);
+    }
+    .market-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+    }
+
+    /* ── Index panel ── */
+    #indexPanel {
+      margin: 0 20px 10px;
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px;
+    }
+    #indexPanel h3 { color: var(--text-2); font-size: 0.78rem; font-weight: 500; margin-bottom: 12px; }
+    .index-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .index-chip {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--bg-3); border: 1px solid var(--border); border-radius: 20px;
+      padding: 4px 11px; cursor: pointer; font-size: 0.78rem; user-select: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .index-chip:hover:not(.chip-added) { border-color: var(--accent); background: var(--accent-bg); }
+    .index-chip.chip-selected { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+    .index-chip.chip-added { border-color: var(--up); background: var(--up-dim); color: var(--up); opacity: 0.85; }
+    .index-chip.chip-added:hover { border-color: var(--down); background: var(--down-dim); color: var(--down); opacity: 1; }
+    .index-chip.chip-added:hover .chip-indicator::before { content: '✕'; }
+    .index-chip.chip-added:hover .chip-indicator { font-size: 0; }
+    .index-chip.chip-added:hover .chip-indicator::before { font-size: 0.72rem; opacity: 0.9; }
+    .chip-flag { font-size: 0.9rem; }
+    .chip-name { font-weight: 500; }
+    .chip-sym { color: var(--text-3); font-size: 0.7rem; }
+    .index-panel-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Table ── */
+    .table-wrap { padding: 0 20px 56px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 8px 12px; text-align: left; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th:nth-child(n+5) { text-align: right; }
+    thead th:last-child { text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:hover { background: var(--bg-2); }
+    tbody td { padding: 13px 12px; vertical-align: middle; }
+
+    td.accent { width: 3px; padding: 0; }
+    td.accent.up   { background: var(--up); }
+    td.accent.down { background: var(--down); }
+    td.accent.neu  { background: var(--border); }
+
+    .symbol { font-weight: 700; color: var(--accent); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+    .live-dot {
+      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--up); margin-left: 4px; vertical-align: middle;
+    }
+    .flag-cell { margin-right: 4px; font-size: 0.9rem; }
+    .name { color: var(--text-2); font-size: 0.8rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .price { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+    .chg-cell { text-align: right; font-variant-numeric: tabular-nums; }
+    .ext-cell { text-align: right; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+    .up      { color: var(--up); }
+    .down    { color: var(--down); }
+    .neutral { color: var(--text-3); }
+
     .name-input {
       background: transparent; border: none; border-bottom: 1px solid transparent;
-      color: #8b949e; font-size: 0.82rem; width: 100%; min-width: 80px; max-width: 140px;
-      padding: 2px 4px; border-radius: 0; outline: none; font-family: inherit;
+      color: var(--text-2); font-size: 0.8rem; width: 100%; min-width: 60px; max-width: 130px;
+      padding: 2px 4px; outline: none; font-family: inherit;
     }
-    .name-input:hover { border-bottom-color: #30363d; }
-    .name-input:focus { border-bottom-color: #58a6ff; color: #e6edf3; }
-    .name-input::placeholder { color: #484f58; }
+    .name-input:hover { border-bottom-color: var(--border); }
+    .name-input:focus { border-bottom-color: var(--accent); color: var(--text-1); }
+    .name-input::placeholder { color: var(--text-3); }
+
+    .del-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: var(--text-3); cursor: pointer;
+      width: 28px; height: 28px; border-radius: 5px; margin: 0 auto;
+      transition: color 0.15s, background 0.15s;
+    }
+    .del-btn:hover { color: var(--down); background: var(--down-dim); }
+
+    .loading { color: var(--text-3); font-size: 0.85rem; padding: 24px 0; }
+    .error-cell { color: var(--down); font-size: 0.8rem; }
   </style>
 </head>
 <body>
-  <h1>Tickerboard</h1>
 
-  <div class="settings-bar" id="settingsBar">
-    <span class="settings-label">AWTRIX IP:</span>
-    <input id="awtrixIp" type="text" placeholder="t.ex. 192.168.1.100" style="width:150px" />
-    <button onclick="pingAwtrix()" id="pingBtn" data-i18n="testConn" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.82rem" title="Test connection">Test</button>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+<nav>
+  <div class="nav-left">
+    <div class="logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+      </svg>
+      TICKERBOARD
+    </div>
+    <div class="ip-pill">
+      <input id="awtrixIp" type="text" placeholder="t.ex. 192.168.1.100" />
+      <div class="ip-sep"></div>
+      <button class="ip-test" onclick="pingAwtrix()" id="pingBtn" data-i18n="testConn">Test</button>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span id="pushStatus"></span>
+    <button class="btn-gold" onclick="pushNow()" id="pushBtn" data-i18n="sendToDevice">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+      <span data-i18n="sendToDevice">Send to device</span>
+    </button>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark">🌙</button>
+  </div>
+</nav>
+
+<div class="settings-row">
+  <div class="s-group">
+    <label class="s-check-lbl">
       <input type="checkbox" id="awtrixEnabled" onchange="saveSettings()">
-      <span data-i18n="autoPush">Auto-push to device</span>
+      <span data-i18n="autoPush">Auto-push</span>
     </label>
-    <span class="settings-label" data-i18n="refreshEvery">Refresh every</span>
-    <select id="refreshInterval" onchange="saveSettings(); applyInterval()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
+  </div>
+  <div class="s-sep"></div>
+  <div class="s-group">
+    <span class="s-label" data-i18n="refreshEvery">Every</span>
+    <select id="refreshInterval" class="s-select" onchange="saveSettings(); applyInterval()">
       <option value="10"  data-i18n="sec10">10 sec</option>
       <option value="30"  data-i18n="sec30">30 sec</option>
       <option value="60"  data-i18n="min1" selected>1 min</option>
@@ -92,54 +326,90 @@
       <option value="300" data-i18n="min5">5 min</option>
       <option value="600" data-i18n="min10">10 min</option>
     </select>
-    <span class="settings-label" data-i18n="language">Language:</span>
-    <select id="language" onchange="saveSettings(); applyLanguage()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
+  </div>
+  <div class="s-sep"></div>
+  <div class="s-group">
+    <span class="s-label" data-i18n="displayLabel">Display</span>
+    <select id="displayMode" class="s-select" onchange="saveSettings(); togglePageDuration()">
+      <option value="scroll" data-i18n="scrollMode">Scrolling text</option>
+      <option value="paged"  data-i18n="pagedMode">One at a time</option>
+    </select>
+    <span id="pageDurationWrap" style="display:none;align-items:center;gap:5px">
+      <span class="s-label" data-i18n="secPage">Sec/page</span>
+      <input id="pageDuration" type="number" min="2" max="30" value="5" onchange="saveSettings()"
+        style="background:var(--bg-3);border:1px solid var(--border);color:var(--text-1);padding:0 6px;border-radius:5px;font-size:0.75rem;width:46px;height:26px" />
+    </span>
+    <span id="scrollSpeedWrap" style="display:none;align-items:center;gap:6px">
+      <span class="s-label" data-i18n="scrollSpeed">Speed</span>
+      <input id="scrollSpeed" type="range" class="s-range" min="10" max="100" value="40"
+        oninput="this.nextElementSibling.textContent=this.value+'%'; saveSettings(); triggerPush()" />
+      <span id="scrollSpeedVal" class="s-val">40%</span>
+    </span>
+  </div>
+  <div class="s-sep"></div>
+  <div class="s-group">
+    <span class="s-label" data-i18n="brightness">Brightness</span>
+    <input id="brightness" type="range" class="s-range" min="1" max="100" value="50"
+      oninput="brightnessInput(this.value)" />
+    <span id="brightnessVal" class="s-val">50%</span>
+    <button class="s-btn" id="nightBtn" onclick="setBrightness(15)" data-i18n-title="nightTitle"><span data-i18n="night">Night</span></button>
+    <button class="s-btn" id="dayBtn"   onclick="setBrightness(70)" data-i18n-title="dayTitle"><span data-i18n="day">Day</span></button>
+  </div>
+  <div class="s-sep"></div>
+  <div class="s-group">
+    <span class="s-label" data-i18n="language">Language</span>
+    <select id="language" class="s-select" onchange="saveSettings(); applyLanguage()">
       <option value="en">English</option>
       <option value="sv">Svenska</option>
     </select>
-    <span class="settings-label" data-i18n="displayLabel">Display:</span>
-    <select id="displayMode" onchange="saveSettings(); togglePageDuration()" style="background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:0.85rem;cursor:pointer">
-      <option value="scroll" data-i18n="scrollMode">Scrolling text</option>
-      <option value="paged"  data-i18n="pagedMode">One ticker at a time</option>
-    </select>
-    <span id="pageDurationWrap" style="display:none;align-items:center;gap:6px">
-      <span class="settings-label" data-i18n="secPage">Sec/page:</span>
-      <input id="pageDuration" type="number" min="2" max="30" value="5" onchange="saveSettings()" style="background:#161b22;border:1px solid #30363d;color:#e6edf3;padding:6px 8px;border-radius:6px;font-size:0.85rem;width:55px" />
-    </span>
-    <span id="scrollSpeedWrap" style="display:none;align-items:center;gap:6px">
-      <span class="settings-label" data-i18n="scrollSpeed">Scroll speed:</span>
-      <input id="scrollSpeed" type="range" min="10" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'; saveSettings(); triggerPush()" style="width:80px;accent-color:#58a6ff;cursor:pointer" />
-      <span id="scrollSpeedVal" style="color:#8b949e;font-size:0.82rem;min-width:34px">40%</span>
-    </span>
-    <span style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
-      <span class="settings-label" data-i18n="brightness">Brightness:</span>
-      <input id="brightness" type="range" min="1" max="100" value="50" oninput="brightnessInput(this.value)" style="width:70px;accent-color:#58a6ff;cursor:pointer" />
-      <span id="brightnessVal" style="color:#8b949e;font-size:0.82rem;min-width:28px">50%</span>
-      <button id="nightBtn" onclick="setBrightness(15)" data-i18n-title="nightTitle" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem" title="Night mode ~15%"><span data-i18n="night">Night</span></button>
-      <button id="dayBtn"   onclick="setBrightness(70)" data-i18n-title="dayTitle"   style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem" title="Day mode ~70%"><span data-i18n="day">Day</span></button>
-    </span>
-    <button class="push-btn" onclick="pushNow()" id="pushBtn" data-i18n="sendToDevice">📡 Send to device</button>
-    <span id="pushStatus"></span>
   </div>
+</div>
 
-  <div class="toolbar">
+<div class="toolbar">
+  <div class="search-bar">
+    <span class="search-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </span>
     <input id="addInput" type="text" data-i18n-placeholder="addPlaceholder" placeholder="E.g. AAPL, ^GSPC, SPY" />
-    <button onclick="addTicker()" data-i18n="add">+ Add</button>
-    <button class="refresh" onclick="fetchQuotes()" data-i18n="refreshBtn">↻ Refresh</button>
-    <button onclick="restoreDefaults()" data-i18n="restoreBtn" data-i18n-title="restoreTitle" title="Add back default indices if deleted" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem">Restore indices</button>
+    <div class="search-inner-sep"></div>
+    <button class="search-add-btn" onclick="addTicker()" data-i18n="add">+ Add</button>
+    <button class="search-indices-btn" onclick="toggleIndexPanel()" id="indexPanelBtn" data-i18n="indicesBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      World indices
+    </button>
   </div>
-
-  <div style="display:flex;gap:16px;align-items:center;margin-bottom:4px">
-    <div class="last-updated" id="lastUpdated"></div>
+  <button class="btn-ghost" onclick="fetchQuotes()" data-i18n="refreshBtn">↻ Refresh</button>
+  <div class="toolbar-right">
+    <span id="lastUpdated"></span>
     <div id="marketStatus"></div>
   </div>
+</div>
 
+<div id="indexPanel" style="display:none">
+  <h3 data-i18n="indicesPanelTitle">Select world indices to add</h3>
+  <div class="index-grid" id="indexGrid"></div>
+  <div class="index-panel-actions">
+    <button onclick="addSelectedIndices()" id="addIndicesBtn"
+      style="background:var(--accent);color:#0d1117;border:none;padding:0 14px;height:30px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:700"
+      data-i18n="addSelected">Add selected</button>
+    <span id="indexPanelStatus" style="font-size:0.78rem"></span>
+  </div>
+</div>
+
+<div class="table-wrap">
   <table>
     <thead>
       <tr>
+        <th style="width:3px;padding:0"></th>
         <th>Symbol</th>
         <th data-i18n="colName">Name</th>
-        <th id="colDisplayName" data-i18n="colDisplayName" data-i18n-title="colDisplayTitle" title="Shown on device instead of symbol">Display name</th>
+        <th id="colDisplayName" data-i18n="colDisplayName" data-i18n-title="colDisplayTitle"
+          title="Shown on device instead of symbol">Display name</th>
         <th data-i18n="colPrice">Price</th>
         <th data-i18n="colChange">Change</th>
         <th id="preHeader" data-i18n="colPreMarket">Pre-market</th>
@@ -148,446 +418,550 @@
       </tr>
     </thead>
     <tbody id="tableBody">
-      <tr><td colspan="8" class="loading" data-i18n="loading">Loading data…</td></tr>
+      <tr><td colspan="9" class="loading" data-i18n="loading">Loading data…</td></tr>
     </tbody>
   </table>
+</div>
 
-  <script>
-    const ui = {
-      en: {
-        autoPush:        'Auto-push to device',
-        refreshEvery:    'Refresh every',
-        sec10:           '10 sec',
-        sec30:           '30 sec',
-        min1:            '1 min',
-        min2:            '2 min',
-        min5:            '5 min',
-        min10:           '10 min',
-        language:        'Language:',
-        displayLabel:    'Display:',
-        scrollMode:      'Scrolling text',
-        pagedMode:       'One ticker at a time',
-        secPage:         'Sec/page:',
-        scrollSpeed:     'Scroll speed:',
-        brightness:      'Brightness:',
-        nightTitle:      'Night mode ~15%',
-        night:           'Night',
-        dayTitle:        'Day mode ~70%',
-        day:             'Day',
-        sendToDevice:    '📡 Send to device',
-        addPlaceholder:  'E.g. AAPL, ^GSPC, SPY',
-        add:             '+ Add',
-        refreshBtn:      '↻ Refresh',
-        colName:         'Name',
-        colDisplayName:  'Display name',
-        colDisplayTitle: 'Shown on device instead of symbol',
-        colPrice:        'Price',
-        colChange:       'Change',
-        colPreMarket:    'Pre-market',
-        colAfterHours:   'After-hours',
-        loading:         'Loading data…',
-        fetching:        'Fetching data…',
-        noTickers:       'No tickers added.',
-        errorPrefix:     'Error:',
-        activelyTrading: 'Actively trading',
-        displayNameHint: 'Display name on device',
-        sending:         'Sending…',
-        tickersSent:     'tickers sent',
-        networkError:    'Network error',
-        updated:         'Updated:',
-        testConn:        'Test',
-        connOk:          'Connected',
-        connFail:        'No connection',
-        briSent:         'Brightness set',
-        restoreBtn:      'Restore indices',
-        restoreTitle:    'Add back default indices if deleted',
-        restoreDone:     'Indices restored',
-      },
-      sv: {
-        autoPush:        'Auto-push till enhet',
-        refreshEvery:    'Uppdatera var',
-        sec10:           '10 sek',
-        sec30:           '30 sek',
-        min1:            '1 min',
-        min2:            '2 min',
-        min5:            '5 min',
-        min10:           '10 min',
-        language:        'Språk:',
-        displayLabel:    'Display:',
-        scrollMode:      'Rullande text',
-        pagedMode:       'En ticker åt gången',
-        secPage:         'Sek/sida:',
-        scrollSpeed:     'Rullhastighet:',
-        brightness:      'Ljusstyrka:',
-        nightTitle:      'Nattläge ~15%',
-        night:           'Natt',
-        dayTitle:        'Dagläge ~70%',
-        day:             'Dag',
-        sendToDevice:    '📡 Skicka till enhet',
-        addPlaceholder:  'T.ex. AAPL, ^GSPC, SPY',
-        add:             '+ Lägg till',
-        refreshBtn:      '↻ Uppdatera',
-        colName:         'Namn',
-        colDisplayName:  'Visningsnamn',
-        colDisplayTitle: 'Visas på display istället för symbol',
-        colPrice:        'Pris',
-        colChange:       'Förändring',
-        colPreMarket:    'Förhandel',
-        colAfterHours:   'Efterhandel',
-        loading:         'Laddar data…',
-        fetching:        'Hämtar data…',
-        noTickers:       'Inga tickers tillagda.',
-        errorPrefix:     'Fel:',
-        activelyTrading: 'Handlas aktivt',
-        displayNameHint: 'Visningsnamn på display',
-        sending:         'Skickar…',
-        tickersSent:     'tickers skickade',
-        networkError:    'Nätverksfel',
-        updated:         'Uppdaterad:',
-        testConn:        'Test',
-        connOk:          'Ansluten',
-        connFail:        'Ingen anslutning',
-        briSent:         'Ljusstyrka inställd',
-        restoreBtn:      'Återställ index',
-        restoreTitle:    'Lägg tillbaka standardindex om du råkat ta bort dem',
-        restoreDone:     'Index återställda',
-      },
-    };
+<script>
+  const ui = {
+    en: {
+      autoPush:          'Auto-push',
+      refreshEvery:      'Every',
+      sec10:             '10 sec',
+      sec30:             '30 sec',
+      min1:              '1 min',
+      min2:              '2 min',
+      min5:              '5 min',
+      min10:             '10 min',
+      language:          'Language',
+      displayLabel:      'Display',
+      scrollMode:        'Scrolling text',
+      pagedMode:         'One at a time',
+      secPage:           'Sec/page',
+      scrollSpeed:       'Speed',
+      brightness:        'Brightness',
+      nightTitle:        'Night mode ~15%',
+      night:             'Night',
+      dayTitle:          'Day mode ~70%',
+      day:               'Day',
+      sendToDevice:      'Send to device',
+      addPlaceholder:    'E.g. AAPL, ^GSPC, SPY',
+      add:               '+ Add',
+      refreshBtn:        '↻ Refresh',
+      colName:           'Name',
+      colDisplayName:    'Display name',
+      colDisplayTitle:   'Shown on device instead of symbol',
+      colPrice:          'Price',
+      colChange:         'Change',
+      colPreMarket:      'Pre-market',
+      colAfterHours:     'After-hours',
+      loading:           'Loading data…',
+      fetching:          'Fetching data…',
+      noTickers:         'No tickers added.',
+      errorPrefix:       'Error:',
+      activelyTrading:   'Actively trading',
+      displayNameHint:   'Display name on device',
+      sending:           'Sending…',
+      tickersSent:       'tickers sent',
+      networkError:      'Network error',
+      updated:           'Updated:',
+      testConn:          'Test',
+      connOk:            'Connected',
+      connFail:          'No connection',
+      briSent:           'Brightness set',
+      restoreDone:       'Indices restored',
+      indicesBtn:        'World indices',
+      indicesPanelTitle: 'Select world indices to add',
+      addSelected:       'Add selected',
+      alreadyAdded:      'Already added',
+      noneSelected:      'Select at least one index',
+    },
+    sv: {
+      autoPush:          'Auto-push',
+      refreshEvery:      'Var',
+      sec10:             '10 sek',
+      sec30:             '30 sek',
+      min1:              '1 min',
+      min2:              '2 min',
+      min5:              '5 min',
+      min10:             '10 min',
+      language:          'Språk',
+      displayLabel:      'Display',
+      scrollMode:        'Rullande text',
+      pagedMode:         'En i taget',
+      secPage:           'Sek/sida',
+      scrollSpeed:       'Hastighet',
+      brightness:        'Ljusstyrka',
+      nightTitle:        'Nattläge ~15%',
+      night:             'Natt',
+      dayTitle:          'Dagläge ~70%',
+      day:               'Dag',
+      sendToDevice:      'Skicka till enhet',
+      addPlaceholder:    'T.ex. AAPL, ^GSPC, SPY',
+      add:               '+ Lägg till',
+      refreshBtn:        '↻ Uppdatera',
+      colName:           'Namn',
+      colDisplayName:    'Visningsnamn',
+      colDisplayTitle:   'Visas på display istället för symbol',
+      colPrice:          'Pris',
+      colChange:         'Förändring',
+      colPreMarket:      'Förhandel',
+      colAfterHours:     'Efterhandel',
+      loading:           'Laddar data…',
+      fetching:          'Hämtar data…',
+      noTickers:         'Inga tickers tillagda.',
+      errorPrefix:       'Fel:',
+      activelyTrading:   'Handlas aktivt',
+      displayNameHint:   'Visningsnamn på display',
+      sending:           'Skickar…',
+      tickersSent:       'tickers skickade',
+      networkError:      'Nätverksfel',
+      updated:           'Uppdaterad:',
+      testConn:          'Test',
+      connOk:            'Ansluten',
+      connFail:          'Ingen anslutning',
+      briSent:           'Ljusstyrka inställd',
+      restoreDone:       'Index återställda',
+      indicesBtn:        'Världsindex',
+      indicesPanelTitle: 'Välj världsindex att lägga till',
+      addSelected:       'Lägg till valda',
+      alreadyAdded:      'Redan tillagd',
+      noneSelected:      'Välj minst ett index',
+    },
+  };
 
-    let currentLanguage = 'en';
+  let currentLanguage = 'en';
+  function t(key) { return (ui[currentLanguage] || ui.en)[key] || key; }
 
-    function t(key) {
-      return (ui[currentLanguage] || ui.en)[key] || key;
-    }
+  function applyUiLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (ui[currentLanguage]?.[key] !== undefined) el.textContent = ui[currentLanguage][key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.dataset.i18nPlaceholder;
+      if (ui[currentLanguage]?.[key] !== undefined) el.placeholder = ui[currentLanguage][key];
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      const key = el.dataset.i18nTitle;
+      if (ui[currentLanguage]?.[key] !== undefined) el.title = ui[currentLanguage][key];
+    });
+  }
 
-    function applyUiLanguage() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.dataset.i18n;
-        if (ui[currentLanguage]?.[key] !== undefined) el.textContent = ui[currentLanguage][key];
-      });
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.dataset.i18nPlaceholder;
-        if (ui[currentLanguage]?.[key] !== undefined) el.placeholder = ui[currentLanguage][key];
-      });
-      document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.dataset.i18nTitle;
-        if (ui[currentLanguage]?.[key] !== undefined) el.title = ui[currentLanguage][key];
-      });
-    }
+  const statusLabels = {
+    en: {
+      pre:     { text: '🇺🇸 US Pre-market',  color: '#c9943a', bg: 'rgba(201,148,58,0.1)',  border: 'rgba(201,148,58,0.25)' },
+      post:    { text: '🇺🇸 US After-hours', color: '#7b8ec8', bg: 'rgba(123,142,200,0.1)', border: 'rgba(123,142,200,0.25)' },
+      regular: { text: '🇺🇸 US Open',        color: '#3db87a', bg: 'rgba(61,184,122,0.1)',  border: 'rgba(61,184,122,0.25)' },
+      closed:  { text: '🇺🇸 US Closed',      color: '#5a6a7a', bg: 'rgba(90,106,122,0.1)',  border: 'rgba(90,106,122,0.25)' },
+    },
+    sv: {
+      pre:     { text: '🇺🇸 US Förhandel',   color: '#c9943a', bg: 'rgba(201,148,58,0.1)',  border: 'rgba(201,148,58,0.25)' },
+      post:    { text: '🇺🇸 US Efterhandel', color: '#7b8ec8', bg: 'rgba(123,142,200,0.1)', border: 'rgba(123,142,200,0.25)' },
+      regular: { text: '🇺🇸 US Öppen',       color: '#3db87a', bg: 'rgba(61,184,122,0.1)',  border: 'rgba(61,184,122,0.25)' },
+      closed:  { text: '🇺🇸 US Stängt',      color: '#5a6a7a', bg: 'rgba(90,106,122,0.1)',  border: 'rgba(90,106,122,0.25)' },
+    },
+  };
 
-    const statusLabels = {
-      en: {
-        pre:     { text: 'Pre-market',  color: '#FFA500' },
-        post:    { text: 'After-hours', color: '#58a6ff' },
-        regular: { text: 'Open',        color: '#3fb950' },
-        closed:  { text: 'Closed',      color: '#6e7681' },
-      },
-      sv: {
-        pre:     { text: 'Förhandel',   color: '#FFA500' },
-        post:    { text: 'Efterhandel', color: '#58a6ff' },
-        regular: { text: 'Öppen',       color: '#3fb950' },
-        closed:  { text: 'Stängt',      color: '#6e7681' },
-      },
-    };
+  const trashIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 
-    let quotes = [];
-    let currentStatus = 'closed';
-    let tickerNames = {};
+  let quotes = [];
+  let currentStatus = 'closed';
+  let tickerNames = {};
+  let defaultIndices = [];
+  let selectedChips = new Set();
 
-    function escHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmt(val, decimals = 2) {
+    if (val == null) return '—';
+    return val.toFixed(decimals);
+  }
+  function fmtChange(change, pct) {
+    if (change == null) return '<span class="neutral">—</span>';
+    const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+    const sign = change > 0 ? '+' : '';
+    return `<span class="${cls}">${sign}${fmt(change)} (${sign}${fmt(pct)}%)</span>`;
+  }
+  function extHtml(change, pct, price) {
+    if (price == null) return '<span class="neutral">—</span>';
+    const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+    const sign = (change || 0) > 0 ? '+' : '';
+    const pctStr = change != null ? ` (${sign}${fmt(pct)}%)` : '';
+    return `<span class="${cls}">${fmt(price)}${pctStr}</span>`;
+  }
 
-    function fmt(val, decimals = 2) {
-      if (val == null) return '—';
-      return val.toFixed(decimals);
-    }
-
-    function fmtChange(change, pct) {
-      if (change == null) return '<span class="neutral">—</span>';
-      const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
-      const sign = change > 0 ? '+' : '';
-      return `<span class="${cls}">${sign}${fmt(change)} (${sign}${fmt(pct)}%)</span>`;
-    }
-
-    function badgeHtml(change, pct, price) {
-      if (price == null) return '<span class="badge neutral">—</span>';
-      const cls = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
-      const sign = (change || 0) > 0 ? '+' : '';
-      const pctStr = change != null ? ` (${sign}${fmt(pct)}%)` : '';
-      return `<span class="badge ${cls}">${fmt(price)}${pctStr}</span>`;
-    }
-
-    function render() {
-      const showPre  = currentStatus === 'pre';
-      document.getElementById('preHeader').style.display  = showPre ? '' : 'none';
-      document.getElementById('postHeader').style.display = '';
-      const rows = quotes.map(q => {
-        if (q.error) {
-          return `<tr>
-            <td class="symbol">${escHtml(q.symbol)}</td>
-            <td colspan="6" class="error-cell">${t('errorPrefix')} ${escHtml(q.error)}</td>
-            <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">✕</button></td>
-          </tr>`;
-        }
-        const priceCls = (q.change || 0) > 0 ? 'up' : (q.change || 0) < 0 ? 'down' : 'neutral';
-        const customName = tickerNames[q.symbol] || '';
-        const namePlaceholder = q.symbol.replace('^', '');
+  function render() {
+    const showPre = currentStatus === 'pre';
+    document.getElementById('preHeader').style.display  = showPre ? '' : 'none';
+    document.getElementById('postHeader').style.display = '';
+    const rows = quotes.map(q => {
+      if (q.error) {
         return `<tr>
-          <td class="symbol">${escHtml(q.symbol)}${q.is_live ? `<span class="live-dot" title="${t('activelyTrading')}"></span>` : ''}</td>
-          <td class="name" title="${escHtml(q.name)}">${escHtml(q.name)}</td>
-          <td><input class="name-input" data-symbol="${escHtml(q.symbol)}" value="${escHtml(customName)}" placeholder="${escHtml(namePlaceholder)}" title="${t('displayNameHint')}" /></td>
-          <td class="price ${priceCls}">${fmt(q.price)}</td>
-          <td>${fmtChange(q.change, q.pct)}</td>
-          <td style="display:${showPre ? '' : 'none'}">${badgeHtml(q.pre_change, q.pre_pct, q.pre_price)}</td>
-          <td>${badgeHtml(q.post_change, q.post_pct, q.post_price)}</td>
-          <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">✕</button></td>
+          <td class="accent neu"></td>
+          <td class="symbol">${escHtml(q.symbol)}</td>
+          <td colspan="6" class="error-cell">${t('errorPrefix')} ${escHtml(q.error)}</td>
+          <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">${trashIcon}</button></td>
         </tr>`;
-      });
-      document.getElementById('tableBody').innerHTML =
-        rows.join('') || `<tr><td colspan="8" class="loading">${t('noTickers')}</td></tr>`;
-    }
+      }
+      const dir = (q.change || 0) > 0 ? 'up' : (q.change || 0) < 0 ? 'down' : 'neu';
+      const customName = tickerNames[q.symbol] || '';
+      const namePlaceholder = q.symbol.replace('^', '');
+      return `<tr>
+        <td class="accent ${dir}"></td>
+        <td class="symbol">${escHtml(q.symbol)}${q.is_live ? `<span class="live-dot" title="${t('activelyTrading')}"></span>` : ''}</td>
+        <td class="name" title="${escHtml(q.name)}">${flagFor(q.symbol)}${escHtml(q.name)}</td>
+        <td><input class="name-input" data-symbol="${escHtml(q.symbol)}" value="${escHtml(customName)}" placeholder="${escHtml(namePlaceholder)}" title="${t('displayNameHint')}" /></td>
+        <td class="price ${dir}">${fmt(q.price)}</td>
+        <td class="chg-cell">${fmtChange(q.change, q.pct)}</td>
+        <td class="ext-cell" style="display:${showPre ? '' : 'none'}">${extHtml(q.pre_change, q.pre_pct, q.pre_price)}</td>
+        <td class="ext-cell">${extHtml(q.post_change, q.post_pct, q.post_price)}</td>
+        <td><button class="del-btn" onclick="removeTicker('${escHtml(q.symbol)}')">${trashIcon}</button></td>
+      </tr>`;
+    });
+    document.getElementById('tableBody').innerHTML =
+      rows.join('') || `<tr><td colspan="9" class="loading">${t('noTickers')}</td></tr>`;
+    window.getSelection?.()?.removeAllRanges();
+    attachNameInputListeners();
+  }
 
-    function updateStatusBadge(status) {
-      const labels = statusLabels[currentLanguage] || statusLabels.en;
-      const s = labels[status] || labels.closed;
-      document.getElementById('marketStatus').innerHTML =
-        `<span style="font-size:0.78rem;padding:2px 10px;border-radius:12px;background:#21262d;color:${s.color};font-weight:500">${s.text}</span>`;
-    }
+  function updateStatusBadge(status) {
+    const labels = statusLabels[currentLanguage] || statusLabels.en;
+    const s = labels[status] || labels.closed;
+    document.getElementById('marketStatus').innerHTML =
+      `<span class="market-badge" style="color:${s.color};background:${s.bg};border:1px solid ${s.border}">${s.text}</span>`;
+  }
 
-    function applyLanguage() {
-      currentLanguage = document.getElementById('language').value;
-      document.documentElement.lang = currentLanguage;
-      applyUiLanguage();
-      updateStatusBadge(currentStatus);
+  function applyLanguage() {
+    currentLanguage = document.getElementById('language').value;
+    document.documentElement.lang = currentLanguage;
+    applyUiLanguage();
+    updateStatusBadge(currentStatus);
+    render();
+  }
+
+  function flagFor(symbol) {
+    const idx = defaultIndices.find(i => i.symbol === symbol);
+    return idx ? `<span class="flag-cell">${idx.flag}</span>` : '';
+  }
+
+  async function loadTickerNames() {
+    const res = await fetch('/api/ticker-names');
+    tickerNames = await res.json();
+  }
+
+  async function loadDefaultIndices() {
+    const res = await fetch('/api/default-indices');
+    defaultIndices = await res.json();
+  }
+
+  function toggleIndexPanel() {
+    const panel = document.getElementById('indexPanel');
+    const open = panel.style.display === 'none';
+    panel.style.display = open ? '' : 'none';
+    const btn = document.getElementById('indexPanelBtn');
+    if (open) {
+      btn.classList.add('active');
+      renderIndexPanel();
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+
+  function renderIndexPanel() {
+    selectedChips.clear();
+    const grid = document.getElementById('indexGrid');
+    const currentSymbols = new Set(quotes.map(q => q.symbol));
+    grid.innerHTML = defaultIndices.map(idx => {
+      const added = currentSymbols.has(idx.symbol);
+      const cls = added ? 'index-chip chip-added' : 'index-chip';
+      return `<div class="${cls}" data-sym="${escHtml(idx.symbol)}" title="${escHtml(idx.name)}">
+        <span class="chip-flag">${idx.flag}</span>
+        <span class="chip-name">${escHtml(idx.name)}</span>
+        <span class="chip-sym">${escHtml(idx.symbol)}</span>
+        ${added ? '<span class="chip-indicator">✓</span>' : ''}
+      </div>`;
+    }).join('');
+    grid.querySelectorAll('.index-chip').forEach(chip => {
+      chip.addEventListener('click', () => toggleChip(chip));
+    });
+  }
+
+  async function toggleChip(el) {
+    const sym = el.dataset.sym;
+    if (el.classList.contains('chip-added')) {
+      el.style.opacity = '0.3';
+      el.style.pointerEvents = 'none';
+      await fetch('/api/tickers/' + encodeURIComponent(sym), { method: 'DELETE' });
+      quotes = quotes.filter(q => q.symbol !== sym);
       render();
+      renderIndexPanel();
+      return;
     }
-
-    async function loadTickerNames() {
-      const res = await fetch('/api/ticker-names');
-      tickerNames = await res.json();
+    if (selectedChips.has(sym)) {
+      selectedChips.delete(sym);
+      el.classList.remove('chip-selected');
+    } else {
+      selectedChips.add(sym);
+      el.classList.add('chip-selected');
     }
+  }
 
-    async function addTicker() {
-      const input = document.getElementById('addInput');
-      const symbol = input.value.trim().toUpperCase();
-      if (!symbol) return;
-      await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'POST' });
-      input.value = '';
-      await fetchQuotes();
+  async function addSelectedIndices() {
+    const status = document.getElementById('indexPanelStatus');
+    if (selectedChips.size === 0) {
+      status.textContent = t('noneSelected');
+      status.style.color = 'var(--text-3)';
+      return;
     }
-
-    async function removeTicker(symbol) {
-      await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'DELETE' });
-      await fetchQuotes();
-    }
-
-    document.getElementById('addInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTicker();
+    await fetch('/api/restore-defaults', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({symbols: [...selectedChips]}),
     });
+    selectedChips.clear();
+    status.textContent = '';
+    await loadDefaultIndices();
+    await fetchQuotes();
+    renderIndexPanel();
+  }
 
-    document.getElementById('tableBody').addEventListener('keydown', e => {
-      if (e.target.classList.contains('name-input') && e.key === 'Enter') e.target.blur();
+  async function addTicker() {
+    const input = document.getElementById('addInput');
+    const symbol = input.value.trim().toUpperCase();
+    if (!symbol) return;
+    await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'POST' });
+    input.value = '';
+    await fetchQuotes();
+  }
+
+  async function removeTicker(symbol) {
+    await fetch('/api/tickers/' + encodeURIComponent(symbol), { method: 'DELETE' });
+    await fetchQuotes();
+  }
+
+  document.getElementById('addInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTicker();
+  });
+
+  function attachNameInputListeners() {
+    document.getElementById('tableBody').querySelectorAll('.name-input').forEach(input => {
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     });
+  }
 
-    document.getElementById('tableBody').addEventListener('change', async e => {
-      if (!e.target.classList.contains('name-input')) return;
-      const sym = e.target.dataset.symbol;
-      const name = e.target.value.trim();
-      if (name) {
-        await fetch('/api/ticker-names/' + encodeURIComponent(sym), {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name}),
-        });
-        tickerNames[sym] = name;
-      } else {
-        await fetch('/api/ticker-names/' + encodeURIComponent(sym), { method: 'DELETE' });
-        delete tickerNames[sym];
-      }
-      if (document.getElementById('awtrixEnabled').checked) {
-        const ip = document.getElementById('awtrixIp').value.trim();
-        fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
-      }
-    });
-
-    let refreshTimer = null;
-
-    function applyInterval() {
-      const secs = parseInt(document.getElementById('refreshInterval').value);
-      if (refreshTimer) clearInterval(refreshTimer);
-      refreshTimer = setInterval(() => fetchQuotes(true), secs * 1000);
-    }
-
-    function togglePageDuration() {
-      const isPaged = document.getElementById('displayMode').value === 'paged';
-      document.getElementById('pageDurationWrap').style.display = isPaged ? 'flex' : 'none';
-      document.getElementById('scrollSpeedWrap').style.display = isPaged ? 'none' : 'flex';
-    }
-
-    async function loadSettings() {
-      const res = await fetch('/api/settings');
-      const s = await res.json();
-      document.getElementById('awtrixIp').value = s.awtrix_ip || '';
-      document.getElementById('awtrixEnabled').checked = s.awtrix_enabled;
-      document.getElementById('refreshInterval').value = String(s.refresh_interval || 60);
-      document.getElementById('language').value = s.language || 'en';
-      document.getElementById('displayMode').value = s.display_mode || 'scroll';
-      document.getElementById('pageDuration').value = String(s.page_duration || 5);
-      const spd = s.scroll_speed || 40;
-      document.getElementById('scrollSpeed').value = String(spd);
-      document.getElementById('scrollSpeedVal').textContent = spd + '%';
-      const bri = s.awtrix_brightness ?? 50;
-      document.getElementById('brightness').value = String(bri);
-      document.getElementById('brightnessVal').textContent = bri + '%';
-      currentLanguage = s.language || 'en';
-      document.documentElement.lang = currentLanguage;
-      applyUiLanguage();
-      applyInterval();
-      togglePageDuration();
-    }
-
-    let brightnessTimer = null;
-    function brightnessInput(val) {
-      document.getElementById('brightnessVal').textContent = val + '%';
-      clearTimeout(brightnessTimer);
-      brightnessTimer = setTimeout(() => applyBrightness(val), 400);
-    }
-
-    function setBrightness(val) {
-      document.getElementById('brightness').value = String(val);
-      document.getElementById('brightnessVal').textContent = val + '%';
-      applyBrightness(val);
-    }
-
-    let pushDebounce = null;
-    function triggerPush() {
-      if (!document.getElementById('awtrixEnabled').checked) return;
-      clearTimeout(pushDebounce);
-      pushDebounce = setTimeout(() => {
-        const ip = document.getElementById('awtrixIp').value.trim();
-        fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
-      }, 600);
-    }
-
-    async function pingAwtrix() {
-      const btn = document.getElementById('pingBtn');
-      const status = document.getElementById('pushStatus');
-      btn.disabled = true;
-      status.textContent = '…';
-      status.className = '';
-      const ip = document.getElementById('awtrixIp').value.trim();
-      try {
-        const res = await fetch('/api/ping-awtrix?' + new URLSearchParams({ip}));
-        const data = await res.json();
-        if (data.ok) {
-          status.textContent = `✓ ${t('connOk')} (${data.ip}) v${data.version || '?'} BRI=${data.bri ?? '?'}`;
-          status.className = 'ok';
-        } else {
-          status.textContent = `✗ ${t('connFail')}: ${data.error} (IP: ${data.ip || 'not set'})`;
-          status.className = 'err';
-        }
-      } catch (e) {
-        status.textContent = `✗ ${t('networkError')}`;
-        status.className = 'err';
-      }
-      btn.disabled = false;
-      setTimeout(() => { status.textContent = ''; }, 8000);
-    }
-
-    async function applyBrightness(val) {
-      const ip = document.getElementById('awtrixIp').value.trim();
-      const res = await fetch('/api/brightness', {
+  document.getElementById('tableBody').addEventListener('change', async e => {
+    if (!e.target.classList.contains('name-input')) return;
+    const sym = e.target.dataset.symbol;
+    const name = e.target.value.trim();
+    if (name) {
+      await fetch('/api/ticker-names/' + encodeURIComponent(sym), {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({level: parseInt(val), ip}),
+        body: JSON.stringify({name}),
       });
+      tickerNames[sym] = name;
+    } else {
+      await fetch('/api/ticker-names/' + encodeURIComponent(sym), { method: 'DELETE' });
+      delete tickerNames[sym];
+    }
+    if (document.getElementById('awtrixEnabled').checked) {
+      const ip = document.getElementById('awtrixIp').value.trim();
+      fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
+    }
+  });
+
+  let refreshTimer = null;
+  function applyInterval() {
+    const secs = parseInt(document.getElementById('refreshInterval').value);
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => fetchQuotes(true), secs * 1000);
+  }
+
+  function togglePageDuration() {
+    const isPaged = document.getElementById('displayMode').value === 'paged';
+    document.getElementById('pageDurationWrap').style.display = isPaged ? 'flex' : 'none';
+    document.getElementById('scrollSpeedWrap').style.display  = isPaged ? 'none' : 'flex';
+  }
+
+  async function loadSettings() {
+    const res = await fetch('/api/settings');
+    const s = await res.json();
+    document.getElementById('awtrixIp').value = s.awtrix_ip || '';
+    document.getElementById('awtrixEnabled').checked = s.awtrix_enabled;
+    document.getElementById('refreshInterval').value = String(s.refresh_interval || 60);
+    document.getElementById('language').value = s.language || 'en';
+    document.getElementById('displayMode').value = s.display_mode || 'scroll';
+    document.getElementById('pageDuration').value = String(s.page_duration || 5);
+    const spd = s.scroll_speed || 40;
+    document.getElementById('scrollSpeed').value = String(spd);
+    document.getElementById('scrollSpeedVal').textContent = spd + '%';
+    const bri = s.awtrix_brightness ?? 50;
+    document.getElementById('brightness').value = String(bri);
+    document.getElementById('brightnessVal').textContent = bri + '%';
+    currentLanguage = s.language || 'en';
+    document.documentElement.lang = currentLanguage;
+    applyUiLanguage();
+    applyInterval();
+    togglePageDuration();
+  }
+
+  let brightnessTimer = null;
+  function brightnessInput(val) {
+    document.getElementById('brightnessVal').textContent = val + '%';
+    clearTimeout(brightnessTimer);
+    brightnessTimer = setTimeout(() => applyBrightness(val), 400);
+  }
+  function setBrightness(val) {
+    document.getElementById('brightness').value = String(val);
+    document.getElementById('brightnessVal').textContent = val + '%';
+    applyBrightness(val);
+  }
+
+  let pushDebounce = null;
+  function triggerPush() {
+    if (!document.getElementById('awtrixEnabled').checked) return;
+    clearTimeout(pushDebounce);
+    pushDebounce = setTimeout(() => {
+      const ip = document.getElementById('awtrixIp').value.trim();
+      fetch('/api/refresh?' + new URLSearchParams({push: true, ip}));
+    }, 600);
+  }
+
+  async function pingAwtrix() {
+    const btn = document.getElementById('pingBtn');
+    const status = document.getElementById('pushStatus');
+    btn.disabled = true;
+    status.textContent = '…';
+    status.className = '';
+    const ip = document.getElementById('awtrixIp').value.trim();
+    try {
+      const res = await fetch('/api/ping-awtrix?' + new URLSearchParams({ip}));
       const data = await res.json();
-      const status = document.getElementById('pushStatus');
       if (data.ok) {
-        status.textContent = `✓ ${t('briSent')} ${val}% → ${data.ip}`;
+        status.textContent = `✓ ${t('connOk')} (${data.ip}) v${data.version || '?'} BRI=${data.bri ?? '?'}`;
         status.className = 'ok';
-        setTimeout(() => { status.textContent = ''; }, 3000);
       } else {
-        status.textContent = `✗ ${data.error || t('networkError')} (IP: ${data.ip || 'not set'})`;
-        status.className = 'err';
-        setTimeout(() => { status.textContent = ''; }, 6000);
-      }
-    }
-
-    async function saveSettings() {
-      await fetch('/api/settings', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          awtrix_ip: document.getElementById('awtrixIp').value.trim(),
-          awtrix_enabled: document.getElementById('awtrixEnabled').checked,
-          refresh_interval: parseInt(document.getElementById('refreshInterval').value),
-          language: document.getElementById('language').value,
-          display_mode: document.getElementById('displayMode').value,
-          page_duration: parseInt(document.getElementById('pageDuration').value) || 5,
-          scroll_speed: parseInt(document.getElementById('scrollSpeed').value) || 40,
-        })
-      });
-    }
-
-    document.getElementById('awtrixIp').addEventListener('change', saveSettings);
-
-    async function pushNow() {
-      const btn = document.getElementById('pushBtn');
-      const status = document.getElementById('pushStatus');
-      await saveSettings();
-      btn.disabled = true;
-      status.textContent = t('sending');
-      status.className = '';
-      try {
-        const ip = document.getElementById('awtrixIp').value.trim();
-        const params = new URLSearchParams({ push: true, ip });
-        const res = await fetch(`/api/refresh?${params}`);
-        const data = await res.json();
-        quotes = data.quotes;
-        currentStatus = data.market_status;
-        render();
-        updateStatusBadge(data.market_status);
-        const pushed = data.quotes.filter(q => !q.error && q.pct != null).length;
-        status.textContent = `✓ ${pushed} ${t('tickersSent')}`;
-        status.className = 'ok';
-      } catch (e) {
-        status.textContent = `✗ ${t('networkError')}`;
+        status.textContent = `✗ ${t('connFail')}: ${data.error} (IP: ${data.ip || 'not set'})`;
         status.className = 'err';
       }
-      btn.disabled = false;
-      setTimeout(() => { status.textContent = ''; }, 4000);
+    } catch (e) {
+      status.textContent = `✗ ${t('networkError')}`;
+      status.className = 'err';
     }
+    btn.disabled = false;
+    setTimeout(() => { status.textContent = ''; }, 8000);
+  }
 
-    async function restoreDefaults() {
-      await fetch('/api/restore-defaults', {method: 'POST'});
-      await fetchQuotes();
-      const status = document.getElementById('pushStatus');
-      status.textContent = '✓ ' + t('restoreDone');
+  async function applyBrightness(val) {
+    const ip = document.getElementById('awtrixIp').value.trim();
+    const res = await fetch('/api/brightness', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({level: parseInt(val), ip}),
+    });
+    const data = await res.json();
+    const status = document.getElementById('pushStatus');
+    if (data.ok) {
+      status.textContent = `✓ ${t('briSent')} ${val}% → ${data.ip}`;
       status.className = 'ok';
       setTimeout(() => { status.textContent = ''; }, 3000);
+    } else {
+      status.textContent = `✗ ${data.error || t('networkError')} (IP: ${data.ip || 'not set'})`;
+      status.className = 'err';
+      setTimeout(() => { status.textContent = ''; }, 6000);
     }
+  }
 
-    async function fetchQuotes(silent = false) {
-      if (!silent) {
-        document.getElementById('tableBody').innerHTML =
-          `<tr><td colspan="8" class="loading">${t('fetching')}</td></tr>`;
-      }
-      const doPush = document.getElementById('awtrixEnabled').checked;
+  async function saveSettings() {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        awtrix_ip:        document.getElementById('awtrixIp').value.trim(),
+        awtrix_enabled:   document.getElementById('awtrixEnabled').checked,
+        refresh_interval: parseInt(document.getElementById('refreshInterval').value),
+        language:         document.getElementById('language').value,
+        display_mode:     document.getElementById('displayMode').value,
+        page_duration:    parseInt(document.getElementById('pageDuration').value) || 5,
+        scroll_speed:     parseInt(document.getElementById('scrollSpeed').value) || 40,
+      })
+    });
+  }
+
+  document.getElementById('awtrixIp').addEventListener('change', saveSettings);
+
+  async function pushNow() {
+    const btn = document.getElementById('pushBtn');
+    const status = document.getElementById('pushStatus');
+    await saveSettings();
+    btn.disabled = true;
+    status.textContent = t('sending');
+    status.className = '';
+    try {
       const ip = document.getElementById('awtrixIp').value.trim();
-      const params = new URLSearchParams({ push: doPush, ip });
+      const params = new URLSearchParams({ push: true, ip });
       const res = await fetch(`/api/refresh?${params}`);
       const data = await res.json();
       quotes = data.quotes;
       currentStatus = data.market_status;
-      document.getElementById('lastUpdated').textContent =
-        t('updated') + ' ' + new Date().toLocaleTimeString();
       render();
       updateStatusBadge(data.market_status);
+      const pushed = data.quotes.filter(q => !q.error && q.pct != null).length;
+      status.textContent = `✓ ${pushed} ${t('tickersSent')}`;
+      status.className = 'ok';
+    } catch (e) {
+      status.textContent = `✗ ${t('networkError')}`;
+      status.className = 'err';
     }
+    btn.disabled = false;
+    setTimeout(() => { status.textContent = ''; }, 4000);
+  }
 
-    Promise.all([loadSettings(), loadTickerNames()]).then(() => fetchQuotes());
-  </script>
+  async function restoreDefaults() {
+    await fetch('/api/restore-defaults', {method: 'POST'});
+    await fetchQuotes();
+    const status = document.getElementById('pushStatus');
+    status.textContent = '✓ ' + t('restoreDone');
+    status.className = 'ok';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }
+
+  async function fetchQuotes(silent = false) {
+    if (!silent) {
+      document.getElementById('tableBody').innerHTML =
+        `<tr><td colspan="9" class="loading">${t('fetching')}</td></tr>`;
+    }
+    const doPush = document.getElementById('awtrixEnabled').checked;
+    const ip = document.getElementById('awtrixIp').value.trim();
+    const params = new URLSearchParams({ push: doPush, ip });
+    const res = await fetch(`/api/refresh?${params}`);
+    const data = await res.json();
+    quotes = data.quotes;
+    currentStatus = data.market_status;
+    document.getElementById('lastUpdated').textContent =
+      t('updated') + ' ' + new Date().toLocaleTimeString();
+    render();
+    updateStatusBadge(data.market_status);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+  });
+
+  Promise.all([loadSettings(), loadTickerNames(), loadDefaultIndices()]).then(() => fetchQuotes());
+</script>
 </body>
 </html>

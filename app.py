@@ -74,7 +74,21 @@ else:
 
 CONFIG_FILE = os.path.join(_base_dir, "config.json")
 
-DEFAULT_TICKERS = ["^GSPC", "^NDX", "^DJI", "^OMX", "^FTSE", "^GDAXI", "^FCHI", "^N225", "^HSI"]
+DEFAULT_INDICES = [
+    {"symbol": "^GSPC",  "flag": "🇺🇸", "name": "S&P 500"},
+    {"symbol": "^NDX",   "flag": "🇺🇸", "name": "NASDAQ-100"},
+    {"symbol": "^DJI",   "flag": "🇺🇸", "name": "Dow Jones"},
+    {"symbol": "^OMX",   "flag": "🇸🇪", "name": "OMX Stockholm 30"},
+    {"symbol": "^FTSE",  "flag": "🇬🇧", "name": "FTSE 100"},
+    {"symbol": "^GDAXI", "flag": "🇩🇪", "name": "DAX"},
+    {"symbol": "^FCHI",  "flag": "🇫🇷", "name": "CAC 40"},
+    {"symbol": "^N225",  "flag": "🇯🇵", "name": "Nikkei 225"},
+    {"symbol": "^HSI",   "flag": "🇭🇰", "name": "Hang Seng"},
+    {"symbol": "^BSESN", "flag": "🇮🇳", "name": "BSE Sensex"},
+    {"symbol": "^AXJO",  "flag": "🇦🇺", "name": "ASX 200"},
+    {"symbol": "^KS11",  "flag": "🇰🇷", "name": "KOSPI"},
+]
+DEFAULT_TICKERS = [i["symbol"] for i in DEFAULT_INDICES]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -190,15 +204,18 @@ def fetch_quotes(symbols: list) -> list:
             now_et = datetime.now(et)
             all_today_candles = close_et[today_mask]
             if not all_today_candles.empty:
-                last_ts = all_today_candles.index[-1]
-                age_min = (now_et - last_ts.to_pydatetime()).total_seconds() / 60
-                # Require ≥3 candles in the last 5 min (~0.6/min).
-                # Works from minute 3 of trading and distinguishes regular
-                # sessions (≈1/min) from sparse pre/post market.
-                cutoff_5 = now_et - timedelta(minutes=5)
-                recent_5 = sum(1 for ts in all_today_candles.index
-                               if ts.to_pydatetime() >= cutoff_5)
-                is_live = age_min < 2 and recent_5 >= 3
+                now_ts = now_et.timestamp()
+                last_ts_unix = all_today_candles.index[-1].timestamp()
+                last_candle_age_min = (now_ts - last_ts_unix) / 60
+                # Density check: count candles in the 90-minute window ending at
+                # the last available candle. Free data feeds delay European/Asian
+                # markets by ~15 min so we can't use "now" as the window end.
+                # Active markets produce ~1 candle/min; sparse pre/post ~0.1/min.
+                cutoff_90 = last_ts_unix - 5400
+                recent_90 = sum(1 for ts in all_today_candles.index
+                                if ts.timestamp() >= cutoff_90)
+                # ≥0.5 candles/min in that window AND last data < 90 min old
+                is_live = (recent_90 / 90.0) >= 0.5 and last_candle_age_min < 90
 
             return {
                 "symbol":      sym,
@@ -273,9 +290,12 @@ def build_awtrix_payload(quotes: list, status: str, language: str = "en", scroll
     label = None if any_live else lang_map.get(status)
 
     text_payload = []
+    LEAD = " " * 80
     if label:
-        text_payload.append({"t": label[0], "c": label[1]})
+        text_payload.append({"t": LEAD + label[0], "c": label[1]})
     text_payload.extend(parts)
+    if not label and text_payload:
+        text_payload[0] = {"t": LEAD + text_payload[0]["t"], "c": text_payload[0]["c"]}
 
     return {"text": text_payload, "scrollSpeed": scroll_speed, "lifetime": lifetime, "repeat": 1}
 
@@ -364,11 +384,26 @@ def remove_ticker(symbol: str):
     return {"ok": True}
 
 
-@app.post("/api/restore-defaults")
-def restore_defaults():
+@app.get("/api/default-indices")
+def get_default_indices():
     config = load_config()
     existing = set(config["tickers"])
-    added = [t for t in DEFAULT_TICKERS if t not in existing]
+    return [
+        {**idx, "added": idx["symbol"] in existing}
+        for idx in DEFAULT_INDICES
+    ]
+
+@app.post("/api/restore-defaults")
+async def restore_defaults(request: Request):
+    try:
+        body = await request.json()
+        symbols = body.get("symbols")
+    except Exception:
+        symbols = None
+    targets = [i["symbol"] for i in DEFAULT_INDICES if symbols is None or i["symbol"] in symbols]
+    config = load_config()
+    existing = set(config["tickers"])
+    added = [t for t in targets if t not in existing]
     config["tickers"] = list(existing) + added
     save_config(config)
     return {"ok": True, "added": added}
