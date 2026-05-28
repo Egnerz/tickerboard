@@ -98,7 +98,7 @@ Webbläsaren öppnas automatiskt. Om macOS blockerar appen, högerklicka och vä
 - **Lägg till tickers** - skriv en symbol (t.ex. `AAPL`, `^GSPC`, `TSLA`, `INVE-B.ST`) i sökfältet och tryck Enter eller klicka **+ Lägg till**
 - **Världsindexpanel** - klicka **Världsindex** för att öppna en panel med 12 stora globala index grupperade per flagga. Klicka ett grått chip för att markera det, klicka sedan **Lägg till valda**. Klicka ett grönt chip för att ta bort det direkt från din lista.
 - **Ta bort tickers** - klicka på soptunneikonen på valfri rad
-- **Anpassat visningsnamn** - klicka på visningsnamnsfältet på en rad och ange ett kortnamn (t.ex. `Investor` istället för `INVE-B.ST`). Det här namnet visas på AWTRIX-displayen istället för symbolen.
+- **Anpassat visningsnamn** - klicka på visningsnamnsfältet på en rad och ange ett kortnamn (t.ex. `INVEB` istället för `INVE-B.ST`). Det här namnet visas på AWTRIX-displayen istället för symbolen.
 
 ### Data
 

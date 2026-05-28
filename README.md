@@ -64,7 +64,7 @@ Get the latest release from [Releases](../../releases/latest):
 
 Double-click `Tickerboard.exe`. A tray icon appears in the system tray and the browser opens automatically at `http://localhost:8000`.
 
-> Windows Defender may warn about an unknown publisher. Click **More info** → **Run anyway**.
+> Windows Defender may warn about an unknown publisher. Click **More info** -> **Run anyway**.
 
 **Linux**
 ```bash
@@ -84,22 +84,56 @@ The browser opens automatically. If macOS blocks the app, right-click it and cho
 
 ### Step 4 - Connect to your display
 
-1. Open Tickerboard in the browser
-2. Enter the TC001's IP address in the **AWTRIX IP** field
-3. Check **Auto-push to device**
-4. Click **↻ Refresh** - your tickers will appear on the display
+1. Enter the TC001's IP address in the **IP field** in the top bar
+2. Click **Test** to verify the connection
+3. Enable **Auto-push** in the settings row to push automatically on every refresh
+4. Click **Refresh** to fetch data - tickers appear on the display immediately
 
 ---
 
 ## Features
 
-- Live data via Yahoo Finance
-- Shows price, change, pre-market and after-hours columns
-- Automatically pushes to AWTRIX3 display (scrolling or paged mode)
-- Prioritises actively trading markets (e.g. OMX30 in the morning before US opens)
-- Adjustable display brightness with Night/Day presets
-- Custom display names per ticker (e.g. `INVE-B.ST` → `Investor`)
-- English and Swedish UI
+### Ticker management
+
+- **Add tickers** - type a symbol (e.g. `AAPL`, `^GSPC`, `TSLA`, `INVE-B.ST`) in the search bar and press Enter or click **+ Add**
+- **World indices panel** - click **World indices** to open a panel with 12 major global indices grouped by flag. Click a grey chip to stage it for adding, then click **Add selected**. Click a green chip to remove it from your list immediately.
+- **Remove tickers** - click the trash icon on any row to remove a ticker
+- **Custom display name** - click the Display name field on any row and type a short name (e.g. `INVEB` instead of `INVE-B.ST`). This name is shown on the AWTRIX display instead of the symbol.
+
+### Data
+
+- Live prices via Yahoo Finance with pre-market and after-hours data
+- A green dot next to the symbol means the market is actively trading right now
+- The table shows: symbol, full name, display name, price, day change, and after-hours/pre-market change
+- Market status badge (top right) shows the current US session: Open, Pre-market, After-hours, or Closed
+
+### AWTRIX display
+
+- **Auto-push** - when enabled, data is sent to the display automatically on every refresh
+- **Send to device** - manual push at any time
+- **Scrolling text** mode - all tickers scroll as one continuous ticker tape
+- **One at a time** mode - each ticker is shown as a full-screen static card, cycling through all tickers
+- When any market is actively trading (e.g. OMX30 during European hours), only the live tickers are shown on the display so the screen stays relevant
+- Green color = positive change, red = negative
+
+### Settings
+
+All settings are saved automatically and restored on next launch.
+
+| Setting | Description |
+|---------|-------------|
+| Auto-push | Automatically push to the display on every refresh |
+| Every | Refresh interval (10 sec to 10 min) |
+| Display | Scrolling text or one ticker at a time |
+| Speed | Scroll speed (only applies to scrolling mode) |
+| Brightness | Display brightness, with Night (~15%) and Day (~70%) presets |
+| Language | English or Swedish |
+
+### Light and dark mode
+
+Click the moon/sun icon in the top-right corner to toggle between dark and light mode. The preference is saved in the browser.
+
+---
 
 ## Configuration
 
