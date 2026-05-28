@@ -533,4 +533,39 @@ def refresh(push: bool = False, ip: str = ""):
         "push": push_result,
     }
 
+@app.get("/api/device-indicators")
+def get_device_indicators(ip: str = ""):
+    config = load_config()
+    ip = ip.strip() or config.get("awtrix_ip", "").strip()
+    if not ip:
+        return {"ok": False, "error": "No IP configured"}
+    try:
+        req = urllib.request.Request(f"http://{ip}/api/settings", method="GET")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+        return {"ok": True, "BAT": data.get("BAT", True), "TEMP": data.get("TEMP", True), "HUM": data.get("HUM", True)}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/device-indicators")
+async def set_device_indicators(request: Request):
+    body = await request.json()
+    config = load_config()
+    ip = body.get("ip", "").strip() or config.get("awtrix_ip", "").strip()
+    if not ip:
+        return {"ok": False, "error": "No IP configured"}
+    settings = {k: bool(body[k]) for k in ("BAT", "TEMP", "HUM") if k in body}
+    if not settings:
+        return {"ok": False, "error": "No settings provided"}
+    data = json.dumps(settings).encode()
+    try:
+        req = urllib.request.Request(
+            f"http://{ip}/api/settings", data=data, method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        urllib.request.urlopen(req, timeout=5)
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")

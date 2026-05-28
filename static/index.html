@@ -363,6 +363,22 @@
       <option value="sv">Svenska</option>
     </select>
   </div>
+  <div class="s-sep"></div>
+  <div class="s-group">
+    <span class="s-label" data-i18n="devicePanel">Show on device</span>
+    <label class="s-check-lbl">
+      <input type="checkbox" id="showBat" onchange="setDeviceIndicator('BAT', this.checked)">
+      <span data-i18n="battery">Battery</span>
+    </label>
+    <label class="s-check-lbl">
+      <input type="checkbox" id="showTemp" onchange="setDeviceIndicator('TEMP', this.checked)">
+      <span data-i18n="temperature">Temp</span>
+    </label>
+    <label class="s-check-lbl">
+      <input type="checkbox" id="showHum" onchange="setDeviceIndicator('HUM', this.checked)">
+      <span data-i18n="humidity">Humidity</span>
+    </label>
+  </div>
 </div>
 
 <div class="toolbar">
@@ -476,6 +492,10 @@
       addSelected:       'Add selected',
       alreadyAdded:      'Already added',
       noneSelected:      'Select at least one index',
+      devicePanel:       'Show on device',
+      battery:           'Battery',
+      temperature:       'Temp',
+      humidity:          'Humidity',
     },
     sv: {
       autoPush:          'Auto-push',
@@ -528,6 +548,10 @@
       addSelected:       'Lägg till valda',
       alreadyAdded:      'Redan tillagd',
       noneSelected:      'Välj minst ett index',
+      devicePanel:       'Visa på enhet',
+      battery:           'Batteri',
+      temperature:       'Temp',
+      humidity:          'Fukt',
     },
   };
 
@@ -929,6 +953,29 @@
     setTimeout(() => { status.textContent = ''; }, 3000);
   }
 
+  async function loadDeviceIndicators() {
+    const ip = document.getElementById('awtrixIp').value.trim();
+    if (!ip) return;
+    try {
+      const res = await fetch('/api/device-indicators?' + new URLSearchParams({ip}));
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('showBat').checked  = data.BAT;
+        document.getElementById('showTemp').checked = data.TEMP;
+        document.getElementById('showHum').checked  = data.HUM;
+      }
+    } catch (e) {}
+  }
+
+  async function setDeviceIndicator(key, value) {
+    const ip = document.getElementById('awtrixIp').value.trim();
+    await fetch('/api/device-indicators', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ip, [key]: value}),
+    });
+  }
+
   async function fetchQuotes(silent = false) {
     if (!silent) {
       document.getElementById('tableBody').innerHTML =
@@ -961,7 +1008,10 @@
     document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
   });
 
-  Promise.all([loadSettings(), loadTickerNames(), loadDefaultIndices()]).then(() => fetchQuotes());
+  Promise.all([loadSettings(), loadTickerNames(), loadDefaultIndices()]).then(() => {
+    fetchQuotes();
+    loadDeviceIndicators();
+  });
 </script>
 </body>
 </html>
