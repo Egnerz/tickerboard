@@ -278,6 +278,42 @@
 
     .loading { color: var(--text-3); font-size: 0.85rem; padding: 24px 0; }
     .error-cell { color: var(--down); font-size: 0.8rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      nav {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 8px 14px;
+        gap: 6px;
+      }
+      .nav-left { width: 100%; gap: 8px; }
+      .ip-pill { flex: 1; }
+      .ip-pill input { width: 0; flex: 1; min-width: 60px; }
+      .nav-right { width: 100%; justify-content: flex-end; }
+      #pushStatus { flex: 1; font-size: 0.72rem; }
+
+      .settings-row { padding: 0 14px; }
+
+      .toolbar { padding: 10px 14px 8px; gap: 8px; }
+      .search-bar { flex: 1; min-width: 0; }
+      .search-bar input { width: 0; flex: 1; min-width: 0; }
+      .toolbar-right { width: 100%; margin-left: 0; }
+
+      #indexPanel { margin: 0 14px 10px; }
+
+      .table-wrap { padding: 0 0 56px; overflow-x: auto; }
+      tbody td { padding: 10px 8px; }
+      thead th { padding: 8px 8px; }
+
+      /* Hide name, display name and after-hours on mobile */
+      thead th:nth-child(3),
+      thead th:nth-child(4),
+      #postHeader,
+      tbody td:nth-child(3),
+      tbody td:nth-child(4),
+      tbody td:nth-child(8) { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -386,7 +422,7 @@
       <input type="checkbox" id="showHum" onchange="setDeviceIndicator('HUM', this.checked)">
       <span data-i18n="humidity">Humidity</span>
     </label>
-    <button class="s-btn" onclick="rebootDevice()" data-i18n="reboot">Reboot</button>
+    <button class="s-btn" onclick="rebootDevice(this)" data-i18n="reboot">Reboot</button>
   </div>
 </div>
 
@@ -995,8 +1031,7 @@
     });
   }
 
-  async function rebootDevice() {
-    const btn = event.target;
+  async function rebootDevice(btn) {
     const status = document.getElementById('pushStatus');
     btn.disabled = true;
     btn.textContent = t('rebooting');
