@@ -126,6 +126,7 @@
     <input id="addInput" type="text" data-i18n-placeholder="addPlaceholder" placeholder="E.g. AAPL, ^GSPC, SPY" />
     <button onclick="addTicker()" data-i18n="add">+ Add</button>
     <button class="refresh" onclick="fetchQuotes()" data-i18n="refreshBtn">↻ Refresh</button>
+    <button onclick="restoreDefaults()" data-i18n="restoreBtn" data-i18n-title="restoreTitle" title="Add back default indices if deleted" style="background:#21262d;color:#8b949e;border:1px solid #30363d;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem">Restore indices</button>
   </div>
 
   <div style="display:flex;gap:16px;align-items:center;margin-bottom:4px">
@@ -198,6 +199,9 @@
         connOk:          'Connected',
         connFail:        'No connection',
         briSent:         'Brightness set',
+        restoreBtn:      'Restore indices',
+        restoreTitle:    'Add back default indices if deleted',
+        restoreDone:     'Indices restored',
       },
       sv: {
         autoPush:        'Auto-push till enhet',
@@ -244,6 +248,9 @@
         connOk:          'Ansluten',
         connFail:        'Ingen anslutning',
         briSent:         'Ljusstyrka inställd',
+        restoreBtn:      'Återställ index',
+        restoreTitle:    'Lägg tillbaka standardindex om du råkat ta bort dem',
+        restoreDone:     'Index återställda',
       },
     };
 
@@ -551,6 +558,15 @@
       }
       btn.disabled = false;
       setTimeout(() => { status.textContent = ''; }, 4000);
+    }
+
+    async function restoreDefaults() {
+      await fetch('/api/tickers/restore-defaults', {method: 'POST'});
+      await fetchQuotes();
+      const status = document.getElementById('pushStatus');
+      status.textContent = '✓ ' + t('restoreDone');
+      status.className = 'ok';
+      setTimeout(() => { status.textContent = ''; }, 3000);
     }
 
     async function fetchQuotes(silent = false) {

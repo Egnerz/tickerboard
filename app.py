@@ -74,11 +74,13 @@ else:
 
 CONFIG_FILE = os.path.join(_base_dir, "config.json")
 
+DEFAULT_TICKERS = ["^GSPC", "^NDX", "^DJI", "^OMX", "^FTSE", "^N225"]
+
 def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
             return json.load(f)
-    return {"tickers": ["^GSPC", "^NDX", "^DJI", "AAPL", "TSLA"], "awtrix_ip": "", "awtrix_enabled": False, "refresh_interval": 60, "ticker_names": {}, "awtrix_brightness": 50}
+    return {"tickers": list(DEFAULT_TICKERS), "awtrix_ip": "", "awtrix_enabled": False, "refresh_interval": 60, "ticker_names": {}, "awtrix_brightness": 50}
 
 def save_config(config):
     with open(CONFIG_FILE, "w") as f:
@@ -360,6 +362,15 @@ def remove_ticker(symbol: str):
     config["tickers"] = [t for t in config["tickers"] if t != symbol]
     save_config(config)
     return {"ok": True}
+
+@app.post("/api/tickers/restore-defaults")
+def restore_defaults():
+    config = load_config()
+    existing = set(config["tickers"])
+    added = [t for t in DEFAULT_TICKERS if t not in existing]
+    config["tickers"] = list(existing) + added
+    save_config(config)
+    return {"ok": True, "added": added}
 
 @app.get("/api/ticker-names")
 def get_ticker_names():
