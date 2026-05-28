@@ -367,6 +367,14 @@
   <div class="s-group">
     <span class="s-label" data-i18n="devicePanel">Show on device</span>
     <label class="s-check-lbl">
+      <input type="checkbox" id="showTim" onchange="setDeviceIndicator('TIM', this.checked)">
+      <span data-i18n="time">Time</span>
+    </label>
+    <label class="s-check-lbl">
+      <input type="checkbox" id="showDat" onchange="setDeviceIndicator('DAT', this.checked)">
+      <span data-i18n="date">Date</span>
+    </label>
+    <label class="s-check-lbl">
       <input type="checkbox" id="showBat" onchange="setDeviceIndicator('BAT', this.checked)">
       <span data-i18n="battery">Battery</span>
     </label>
@@ -378,6 +386,7 @@
       <input type="checkbox" id="showHum" onchange="setDeviceIndicator('HUM', this.checked)">
       <span data-i18n="humidity">Humidity</span>
     </label>
+    <button class="s-btn" onclick="rebootDevice()" data-i18n="reboot">Reboot</button>
   </div>
 </div>
 
@@ -493,9 +502,13 @@
       alreadyAdded:      'Already added',
       noneSelected:      'Select at least one index',
       devicePanel:       'Show on device',
+      time:              'Time',
+      date:              'Date',
       battery:           'Battery',
       temperature:       'Temp',
       humidity:          'Humidity',
+      reboot:            'Reboot',
+      rebooting:         'Rebooting…',
     },
     sv: {
       autoPush:          'Auto-push',
@@ -549,9 +562,13 @@
       alreadyAdded:      'Redan tillagd',
       noneSelected:      'Välj minst ett index',
       devicePanel:       'Visa på enhet',
+      time:              'Tid',
+      date:              'Datum',
       battery:           'Batteri',
       temperature:       'Temp',
       humidity:          'Fukt',
+      reboot:            'Starta om',
+      rebooting:         'Startar om…',
     },
   };
 
@@ -960,6 +977,8 @@
       const res = await fetch('/api/device-indicators?' + new URLSearchParams({ip}));
       const data = await res.json();
       if (data.ok) {
+        document.getElementById('showTim').checked  = data.TIM;
+        document.getElementById('showDat').checked  = data.DAT;
         document.getElementById('showBat').checked  = data.BAT;
         document.getElementById('showTemp').checked = data.TEMP;
         document.getElementById('showHum').checked  = data.HUM;
@@ -974,6 +993,20 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ip, [key]: value}),
     });
+  }
+
+  async function rebootDevice() {
+    const btn = event.target;
+    const status = document.getElementById('pushStatus');
+    btn.disabled = true;
+    btn.textContent = t('rebooting');
+    const ip = document.getElementById('awtrixIp').value.trim();
+    await fetch('/api/device-reboot?' + new URLSearchParams({ip}), {method: 'POST'});
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = t('reboot');
+      loadDeviceIndicators();
+    }, 8000);
   }
 
   async function fetchQuotes(silent = false) {

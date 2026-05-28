@@ -533,6 +533,8 @@ def refresh(push: bool = False, ip: str = ""):
         "push": push_result,
     }
 
+_INDICATOR_KEYS = ("BAT", "TEMP", "HUM", "TIM", "DAT")
+
 @app.get("/api/device-indicators")
 def get_device_indicators(ip: str = ""):
     config = load_config()
@@ -543,7 +545,7 @@ def get_device_indicators(ip: str = ""):
         req = urllib.request.Request(f"http://{ip}/api/settings", method="GET")
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
-        return {"ok": True, "BAT": data.get("BAT", True), "TEMP": data.get("TEMP", True), "HUM": data.get("HUM", True)}
+        return {"ok": True, **{k: data.get(k, True) for k in _INDICATOR_KEYS}}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
@@ -554,7 +556,7 @@ async def set_device_indicators(request: Request):
     ip = body.get("ip", "").strip() or config.get("awtrix_ip", "").strip()
     if not ip:
         return {"ok": False, "error": "No IP configured"}
-    settings = {k: bool(body[k]) for k in ("BAT", "TEMP", "HUM") if k in body}
+    settings = {k: bool(body[k]) for k in _INDICATOR_KEYS if k in body}
     if not settings:
         return {"ok": False, "error": "No settings provided"}
     data = json.dumps(settings).encode()
@@ -563,6 +565,19 @@ async def set_device_indicators(request: Request):
             f"http://{ip}/api/settings", data=data, method="POST",
             headers={"Content-Type": "application/json"},
         )
+        urllib.request.urlopen(req, timeout=5)
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/device-reboot")
+def device_reboot(ip: str = ""):
+    config = load_config()
+    ip = ip.strip() or config.get("awtrix_ip", "").strip()
+    if not ip:
+        return {"ok": False, "error": "No IP configured"}
+    try:
+        req = urllib.request.Request(f"http://{ip}/api/reboot", method="POST")
         urllib.request.urlopen(req, timeout=5)
         return {"ok": True}
     except Exception as e:
