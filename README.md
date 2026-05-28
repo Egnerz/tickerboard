@@ -96,7 +96,7 @@ The browser opens automatically. If macOS blocks the app, right-click it and cho
 ### Ticker management
 
 - **Add tickers** - type a symbol (e.g. `AAPL`, `^GSPC`, `TSLA`, `INVE-B.ST`) in the search bar and press Enter or click **+ Add**
-- **World indices panel** - click **World indices** to open a panel with 12 major global indices grouped by flag. Click a grey chip to stage it for adding, then click **Add selected**. Click a green chip to remove it from your list immediately.
+- **World indices panel** - click **World indices** to open a panel with 12 major global indices grouped by flag. Click an index to stage it for adding, then click **Add selected**. Click a green index to remove it from your list immediately.
 - **Remove tickers** - click the trash icon on any row to remove a ticker
 - **Custom display name** - click the Display name field on any row and type a short name (e.g. `INVEB` instead of `INVE-B.ST`). This name is shown on the AWTRIX display instead of the symbol.
 
