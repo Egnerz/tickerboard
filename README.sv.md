@@ -93,15 +93,49 @@ Webbläsaren öppnas automatiskt. Om macOS blockerar appen, högerklicka och vä
 
 ## Funktioner
 
-- Livedata via Yahoo Finance
-- Visar pris, förändring, förhandel och efterhandel
-- Pushar automatiskt till AWTRIX3-display (rullande text eller en ticker åt gången)
-- Prioriterar aktivt handlade marknader (t.ex. OMX30 på morgonen innan USA öppnar)
-- Justerbar ljusstyrka med natt- och dagläge
-- Anpassade visningsnamn per ticker (t.ex. `INVE-B.ST` blir `Investor`)
-- Stöd för svenska och engelska etiketter
+### Tickerhantering
 
-## Inställningar
+- **Lägg till tickers** - skriv en symbol (t.ex. `AAPL`, `^GSPC`, `TSLA`, `INVE-B.ST`) i sökfältet och tryck Enter eller klicka **+ Lägg till**
+- **Världsindexpanel** - klicka **Världsindex** för att öppna en panel med 12 stora globala index grupperade per flagga. Klicka ett grått chip för att markera det, klicka sedan **Lägg till valda**. Klicka ett grönt chip för att ta bort det direkt från din lista.
+- **Ta bort tickers** - klicka på soptunneikonen på valfri rad
+- **Anpassat visningsnamn** - klicka på visningsnamnsfältet på en rad och ange ett kortnamn (t.ex. `Investor` istället för `INVE-B.ST`). Det här namnet visas på AWTRIX-displayen istället för symbolen.
+
+### Data
+
+- Livepriser via Yahoo Finance med förhandels- och efterhandelsdata
+- En grön prick bredvid symbolen betyder att marknaden handlas aktivt just nu
+- Tabellen visar: symbol, fullständigt namn, visningsnamn, pris, daglig förändring och förhandels-/efterhandelsförändring
+- Marknadsstatus (uppe till höger) visar aktuell US-session: Öppen, Förhandel, Efterhandel eller Stängd
+
+### AWTRIX-display
+
+- **Auto-push** - när aktiverat skickas data automatiskt till displayen vid varje uppdatering
+- **Skicka till enhet** - manuell push när som helst
+- **Rullande text** - alla tickers rullar som ett sammanhängande textband
+- **En i taget** - varje ticker visas som ett statiskt helskärmskort som växlar mellan alla tickers
+- När någon marknad handlas aktivt (t.ex. OMX30 under europeiska timmar) visas bara de aktiva tickersna på displayen
+- Grön färg = positiv förändring, röd = negativ
+
+### Inställningar
+
+Alla inställningar sparas automatiskt och återställs vid nästa start.
+
+| Inställning | Beskrivning |
+|-------------|-------------|
+| Auto-push | Pusha automatiskt till displayen vid varje uppdatering |
+| Var | Uppdateringsintervall (10 sek till 10 min) |
+| Display | Rullande text eller en ticker i taget |
+| Hastighet | Rullhastighet (gäller bara rullande läge) |
+| Ljusstyrka | Displayens ljusstyrka, med Natt (~15%) och Dag (~70%) som förinställningar |
+| Språk | Engelska eller svenska |
+
+### Ljust och mörkt läge
+
+Klicka på måne-/solikonen uppe till höger för att växla mellan mörkt och ljust läge. Inställningen sparas i webbläsaren.
+
+---
+
+## Konfiguration
 
 Alla inställningar sparas automatiskt i `config.json` i samma mapp som programmet - inga manuella ändringar behövs. Filen skapas vid första start.
 
