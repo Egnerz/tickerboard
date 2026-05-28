@@ -74,7 +74,7 @@ else:
 
 CONFIG_FILE = os.path.join(_base_dir, "config.json")
 
-DEFAULT_TICKERS = ["^GSPC", "^NDX", "^DJI", "^OMX", "^FTSE", "^N225"]
+DEFAULT_TICKERS = ["^GSPC", "^NDX", "^DJI", "^OMX", "^FTSE", "^GDAXI", "^FCHI", "^N225", "^HSI"]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -363,7 +363,8 @@ def remove_ticker(symbol: str):
     save_config(config)
     return {"ok": True}
 
-@app.post("/api/tickers/restore-defaults")
+
+@app.post("/api/restore-defaults")
 def restore_defaults():
     config = load_config()
     existing = set(config["tickers"])
