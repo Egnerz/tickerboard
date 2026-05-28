@@ -26,6 +26,24 @@ The TC001 ships with its own firmware. You need to replace it with AWTRIX3 to us
 
 > **Note:** Flashing replaces the original firmware. The process is reversible - you can always re-flash the stock firmware from Ulanzi's website if needed.
 
+#### If the web flasher does not work - use esptool
+
+The web flasher requires a compatible browser and can sometimes fail. If it does, flash manually with esptool:
+
+1. Install esptool: `pip install esptool`
+2. Download the latest AWTRIX3 firmware `.bin` file from [github.com/Blueforcer/awtrix3/releases](https://github.com/Blueforcer/awtrix3/releases)
+3. Find your serial port - on Windows it shows as `COM3` (or similar) in Device Manager, on Linux as `/dev/ttyUSB0` or `/dev/ttyACM0`
+4. Erase the flash:
+   ```
+   esptool.py --port COM3 erase_flash
+   ```
+5. Flash the firmware:
+   ```
+   esptool.py --port COM3 write_flash 0x0 awtrix3.bin
+   ```
+   Replace `COM3` with your actual port and `awtrix3.bin` with the downloaded filename.
+6. The device reboots and opens the `AWTRIX_XXXXXX` Wi-Fi hotspot - continue from step 5 above.
+
 ---
 
 ### Step 2 - Download Tickerboard

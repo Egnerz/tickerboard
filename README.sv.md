@@ -26,6 +26,24 @@ TC001 levereras med sin egen firmware. Du behöver ersätta den med AWTRIX3 för
 
 > **Obs:** Flashningen ersätter den ursprungliga firmware. Det går att återställa - du kan alltid flasha tillbaka originalfirmware från Ulanzis webbplats.
 
+#### Om web flashern inte fungerar - använd esptool
+
+Web flashern kräver en kompatibel webbläsare och kan ibland misslyckas. I så fall kan du flasha manuellt med esptool:
+
+1. Installera esptool: `pip install esptool`
+2. Ladda ner den senaste AWTRIX3-firmware som `.bin`-fil från [github.com/Blueforcer/awtrix3/releases](https://github.com/Blueforcer/awtrix3/releases)
+3. Hitta din serieport - på Windows visas den som `COM3` (eller liknande) i Enhetshanteraren, på Linux som `/dev/ttyUSB0` eller `/dev/ttyACM0`
+4. Radera flashminnet:
+   ```
+   esptool.py --port COM3 erase_flash
+   ```
+5. Flasha firmware:
+   ```
+   esptool.py --port COM3 write_flash 0x0 awtrix3.bin
+   ```
+   Ersätt `COM3` med din faktiska port och `awtrix3.bin` med det nedladdade filnamnet.
+6. Enheten startar om och öppnar `AWTRIX_XXXXXX`-hotspoten - fortsätt sedan från steg 5 ovan.
+
 ---
 
 ### Steg 2 - Ladda ner Tickerboard
