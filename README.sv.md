@@ -137,7 +137,7 @@ Klicka på måne-/solikonen uppe till höger för att växla mellan mörkt och l
 
 ## Konfiguration
 
-Alla inställningar sparas automatiskt i `config.json` i samma mapp som programmet - inga manuella ändringar behövs. Filen skapas vid första start.
+Alla inställningar sparas automatiskt i `~/.tickerboard/config.json` - inga manuella ändringar behövs. Filen skapas vid första start och behålls när du uppdaterar binären.
 
 ---
 

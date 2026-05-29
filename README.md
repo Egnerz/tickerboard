@@ -137,7 +137,7 @@ Click the moon/sun icon in the top-right corner to toggle between dark and light
 
 ## Configuration
 
-All settings are saved automatically to `config.json` in the same folder as the binary - no manual editing needed. The file is created on first run.
+All settings are saved automatically to `~/.tickerboard/config.json` - no manual editing needed. The file is created on first run and persists across binary updates.
 
 ---
 

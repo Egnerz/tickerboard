@@ -64,15 +64,14 @@ def _schedule_push():
 def start_background_push():
     _schedule_push()
 
-# When frozen by PyInstaller, config lives next to the .exe; in dev, next to app.py
 if getattr(sys, 'frozen', False):
-    _base_dir = os.path.dirname(sys.executable)
     _static_dir = os.path.join(sys._MEIPASS, "static")
 else:
-    _base_dir = os.path.dirname(os.path.realpath(__file__))
-    _static_dir = os.path.join(_base_dir, "static")
+    _static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static")
 
-CONFIG_FILE = os.path.join(_base_dir, "config.json")
+_config_dir = os.path.join(os.path.expanduser("~"), ".tickerboard")
+os.makedirs(_config_dir, exist_ok=True)
+CONFIG_FILE = os.path.join(_config_dir, "config.json")
 
 DEFAULT_INDICES = [
     {"symbol": "^GSPC",  "flag": "🇺🇸", "name": "S&P 500"},
